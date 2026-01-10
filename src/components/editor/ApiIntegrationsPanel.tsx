@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Cloud, RefreshCw, FileText, Download, ExternalLink, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Cloud, RefreshCw, FileText, Download, ExternalLink, AlertCircle, CheckCircle2, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Template } from '@/types/editor';
 
 interface ExternalTemplate {
   id: string;
@@ -23,12 +24,15 @@ interface ConnectionStatus {
 
 interface ApiIntegrationsPanelProps {
   onImportTemplate: (template: ExternalTemplate) => void;
+  currentTemplate?: Template | null;
 }
 
 export const ApiIntegrationsPanel: React.FC<ApiIntegrationsPanelProps> = ({
   onImportTemplate,
+  currentTemplate,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [templates, setTemplates] = useState<ExternalTemplate[]>([]);
   const [connection, setConnection] = useState<ConnectionStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -125,6 +129,61 @@ export const ApiIntegrationsPanel: React.FC<ApiIntegrationsPanelProps> = ({
     }
   };
 
+  const saveToWmCompliance = async () => {
+    if (!currentTemplate || !currentTemplate.sourceApp) {
+      toast({
+        title: 'Cannot save',
+        description: 'This template was not imported from WM Compliance',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+
+      const { data, error: fnError } = await supabase.functions.invoke('save-to-wm-compliance', {
+        headers,
+        body: {
+          template: currentTemplate,
+          action: 'save',
+        },
+      });
+
+      if (fnError) {
+        throw new Error(fnError.message);
+      }
+
+      if (data.success) {
+        toast({
+          title: 'Template saved',
+          description: 'Changes have been synced to WM Compliance',
+        });
+      } else {
+        throw new Error(data.error || 'Failed to save template');
+      }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Save failed';
+      toast({
+        title: 'Save failed',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const handleImport = (template: ExternalTemplate) => {
     // Pass template with category for smart element generation
     onImportTemplate({
@@ -136,6 +195,8 @@ export const ApiIntegrationsPanel: React.FC<ApiIntegrationsPanelProps> = ({
       description: `"${template.name}" has been loaded with starter elements based on its category`,
     });
   };
+
+  const isImportedFromWmCompliance = currentTemplate?.sourceApp === 'wm-compliance';
 
   return (
     <div className="w-72 border-r border-sidebar-border bg-sidebar flex flex-col h-full">
@@ -286,6 +347,36 @@ export const ApiIntegrationsPanel: React.FC<ApiIntegrationsPanelProps> = ({
               onClick={fetchTemplates}
             >
               Refresh
+            </Button>
+          </div>
+        )}
+      {/* Save Section - Only show if template is from WM Compliance */}
+        {isImportedFromWmCompliance && (
+          <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Upload className="w-4 h-4 text-primary" />
+              <span className="text-xs font-medium">Sync Changes</span>
+            </div>
+            <p className="text-[10px] text-muted-foreground mb-3">
+              Push your edits back to WM Compliance
+            </p>
+            <Button 
+              onClick={saveToWmCompliance}
+              disabled={isSaving}
+              className="w-full"
+              size="sm"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-3 h-3 mr-2" />
+                  Save to WM Compliance
+                </>
+              )}
             </Button>
           </div>
         )}
