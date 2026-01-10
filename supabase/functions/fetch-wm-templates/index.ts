@@ -32,10 +32,45 @@ Deno.serve(async (req) => {
     }
 
     // WM Compliance Supabase edge function URL
-    const wmComplianceTemplatesUrl = 'https://oltzgidkjxwsukvkomof.supabase.co/functions/v1/templates'
+    const wmComplianceBaseUrl = 'https://oltzgidkjxwsukvkomof.supabase.co/functions/v1'
     
-    // Fetch templates from WM Compliance edge function
-    const templatesResponse = await fetch(wmComplianceTemplatesUrl, {
+    // Check if fetching a specific template or listing all
+    const { templateId } = filters as { templateId?: string }
+    
+    if (templateId) {
+      // Fetch specific template with elements
+      const templateResponse = await fetch(`${wmComplianceBaseUrl}/templates?id=${templateId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${wmComplianceApiKey}`,
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      if (!templateResponse.ok) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: 'Failed to fetch template details',
+            statusCode: templateResponse.status,
+          }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+      
+      const templateData = await templateResponse.json()
+      
+      return new Response(
+        JSON.stringify({
+          success: true,
+          template: templateData.template || templateData,
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
+    // Fetch all templates list
+    const templatesResponse = await fetch(`${wmComplianceBaseUrl}/templates`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${wmComplianceApiKey}`,
@@ -50,7 +85,7 @@ Deno.serve(async (req) => {
           success: false,
           message: 'Could not connect to WM Compliance templates API',
           connection: {
-            url: wmComplianceTemplatesUrl,
+            url: wmComplianceBaseUrl,
             status: 'error',
             statusCode: templatesResponse.status,
           },
@@ -67,7 +102,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         connection: {
-          url: wmComplianceTemplatesUrl,
+          url: wmComplianceBaseUrl,
           status: 'connected',
         },
         templates: templatesData.templates || templatesData,
