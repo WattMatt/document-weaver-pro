@@ -73,6 +73,7 @@ const Editor: React.FC = () => {
         {showApiIntegrations && (
           <ApiIntegrationsPanel
             onImportTemplate={(template: ExternalTemplate) => importExternalTemplate(template)}
+            currentTemplate={state.currentTemplate}
           />
         )}
 
