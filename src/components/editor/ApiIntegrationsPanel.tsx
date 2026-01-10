@@ -13,6 +13,7 @@ interface ExternalTemplate {
   description?: string;
   category?: string;
   app: string;
+  elements?: any[];
 }
 
 interface ConnectionStatus {
@@ -125,10 +126,14 @@ export const ApiIntegrationsPanel: React.FC<ApiIntegrationsPanelProps> = ({
   };
 
   const handleImport = (template: ExternalTemplate) => {
-    onImportTemplate(template);
+    // Pass template with category for smart element generation
+    onImportTemplate({
+      ...template,
+      category: template.category,
+    });
     toast({
       title: 'Template imported',
-      description: `"${template.name}" is ready to edit`,
+      description: `"${template.name}" has been loaded with starter elements based on its category`,
     });
   };
 

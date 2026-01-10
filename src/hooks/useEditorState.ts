@@ -205,12 +205,272 @@ export const useEditorState = () => {
     description?: string;
     category?: string;
     app: string;
+    elements?: DocumentElement[];
   }) => {
+    // Generate starter elements based on template category
+    const starterElements: DocumentElement[] = [];
+    const category = externalTemplate.category?.toLowerCase() || 'template';
+
+    // Header element
+    starterElements.push({
+      id: uuidv4(),
+      type: 'header',
+      position: { x: 50, y: 30 },
+      size: { width: 500, height: 60 },
+      style: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#1a1a1a',
+        backgroundColor: 'transparent',
+        textAlign: 'center',
+        padding: 8,
+      },
+      content: externalTemplate.name,
+      visible: true,
+      locked: false,
+    });
+
+    // Description text
+    if (externalTemplate.description) {
+      starterElements.push({
+        id: uuidv4(),
+        type: 'text',
+        position: { x: 50, y: 100 },
+        size: { width: 500, height: 40 },
+        style: {
+          fontSize: 12,
+          fontWeight: 'normal',
+          color: '#6b7280',
+          backgroundColor: 'transparent',
+          textAlign: 'center',
+          padding: 8,
+        },
+        content: externalTemplate.description,
+        visible: true,
+        locked: false,
+      });
+    }
+
+    // Category badge
+    starterElements.push({
+      id: uuidv4(),
+      type: 'text',
+      position: { x: 50, y: 150 },
+      size: { width: 120, height: 28 },
+      style: {
+        fontSize: 11,
+        fontWeight: 'bold',
+        color: '#6366f1',
+        backgroundColor: '#eef2ff',
+        textAlign: 'center',
+        padding: 6,
+        borderRadius: 4,
+      },
+      content: externalTemplate.category || 'Template',
+      visible: true,
+      locked: false,
+    });
+
+    // Divider
+    starterElements.push({
+      id: uuidv4(),
+      type: 'divider',
+      position: { x: 50, y: 190 },
+      size: { width: 500, height: 2 },
+      style: {
+        backgroundColor: '#e5e7eb',
+        padding: 0,
+      },
+      content: '',
+      visible: true,
+      locked: false,
+    });
+
+    // Category-specific content area
+    if (category.includes('compliance') || category.includes('report')) {
+      // Add table for compliance reports
+      starterElements.push({
+        id: uuidv4(),
+        type: 'table',
+        position: { x: 50, y: 220 },
+        size: { width: 500, height: 200 },
+        style: {
+          fontSize: 12,
+          color: '#1a1a1a',
+          backgroundColor: '#ffffff',
+          borderColor: '#e5e7eb',
+          padding: 8,
+        },
+        content: '',
+        tableData: {
+          rows: 5,
+          cols: 4,
+          cells: [
+            [{ content: 'Item', style: { fontWeight: 'bold' } }, { content: 'Status', style: { fontWeight: 'bold' } }, { content: 'Date', style: { fontWeight: 'bold' } }, { content: 'Notes', style: { fontWeight: 'bold' } }],
+            [{ content: '', style: {} }, { content: '', style: {} }, { content: '', style: {} }, { content: '', style: {} }],
+            [{ content: '', style: {} }, { content: '', style: {} }, { content: '', style: {} }, { content: '', style: {} }],
+            [{ content: '', style: {} }, { content: '', style: {} }, { content: '', style: {} }, { content: '', style: {} }],
+            [{ content: '', style: {} }, { content: '', style: {} }, { content: '', style: {} }, { content: '', style: {} }],
+          ],
+        },
+        visible: true,
+        locked: false,
+      });
+    } else if (category.includes('audit') || category.includes('checklist')) {
+      // Add checklist-style content
+      starterElements.push({
+        id: uuidv4(),
+        type: 'text',
+        position: { x: 50, y: 220 },
+        size: { width: 500, height: 30 },
+        style: {
+          fontSize: 14,
+          fontWeight: 'bold',
+          color: '#1a1a1a',
+          backgroundColor: 'transparent',
+          textAlign: 'left',
+          padding: 8,
+        },
+        content: 'Checklist Items:',
+        visible: true,
+        locked: false,
+      });
+      
+      // Checklist items
+      ['☐ Item 1', '☐ Item 2', '☐ Item 3', '☐ Item 4'].forEach((item, index) => {
+        starterElements.push({
+          id: uuidv4(),
+          type: 'text',
+          position: { x: 50, y: 260 + (index * 35) },
+          size: { width: 500, height: 30 },
+          style: {
+            fontSize: 13,
+            fontWeight: 'normal',
+            color: '#374151',
+            backgroundColor: index % 2 === 0 ? '#f9fafb' : 'transparent',
+            textAlign: 'left',
+            padding: 8,
+          },
+          content: item,
+          visible: true,
+          locked: false,
+        });
+      });
+    } else if (category.includes('incident')) {
+      // Incident report form fields
+      const fields = ['Date of Incident:', 'Location:', 'Description:', 'Reported By:', 'Action Taken:'];
+      fields.forEach((field, index) => {
+        starterElements.push({
+          id: uuidv4(),
+          type: 'dynamic-field',
+          position: { x: 50, y: 220 + (index * 50) },
+          size: { width: 500, height: 40 },
+          style: {
+            fontSize: 13,
+            fontWeight: 'normal',
+            color: '#1a1a1a',
+            backgroundColor: '#f9fafb',
+            textAlign: 'left',
+            padding: 10,
+            borderColor: '#e5e7eb',
+            borderWidth: 1,
+          },
+          content: `{{${field.replace(':', '').toLowerCase().replace(/ /g, '_')}}}`,
+          dynamicField: field.replace(':', '').toLowerCase().replace(/ /g, '_'),
+          visible: true,
+          locked: false,
+        });
+        
+        // Label for the field
+        starterElements.push({
+          id: uuidv4(),
+          type: 'text',
+          position: { x: 50, y: 200 + (index * 50) },
+          size: { width: 150, height: 20 },
+          style: {
+            fontSize: 11,
+            fontWeight: 'bold',
+            color: '#6b7280',
+            backgroundColor: 'transparent',
+            textAlign: 'left',
+            padding: 2,
+          },
+          content: field,
+          visible: true,
+          locked: false,
+        });
+      });
+    } else {
+      // Generic content placeholder
+      starterElements.push({
+        id: uuidv4(),
+        type: 'text',
+        position: { x: 50, y: 220 },
+        size: { width: 500, height: 200 },
+        style: {
+          fontSize: 14,
+          fontWeight: 'normal',
+          color: '#374151',
+          backgroundColor: '#f9fafb',
+          textAlign: 'left',
+          padding: 16,
+        },
+        content: 'Add your content here. This template was imported from ' + externalTemplate.app + '.\n\nYou can customize it by adding text, tables, images, and other elements from the palette.',
+        visible: true,
+        locked: false,
+      });
+    }
+
+    // Signature area for formal documents
+    if (category.includes('compliance') || category.includes('audit') || category.includes('report')) {
+      starterElements.push({
+        id: uuidv4(),
+        type: 'signature',
+        position: { x: 50, y: 700 },
+        size: { width: 200, height: 80 },
+        style: {
+          fontSize: 12,
+          color: '#1a1a1a',
+          backgroundColor: 'transparent',
+          borderColor: '#d1d5db',
+          borderWidth: 1,
+          padding: 8,
+        },
+        content: 'Signature',
+        visible: true,
+        locked: false,
+      });
+    }
+
+    // Footer
+    starterElements.push({
+      id: uuidv4(),
+      type: 'footer',
+      position: { x: 50, y: 800 },
+      size: { width: 500, height: 40 },
+      style: {
+        fontSize: 10,
+        fontWeight: 'normal',
+        color: '#9ca3af',
+        backgroundColor: 'transparent',
+        textAlign: 'center',
+        padding: 8,
+      },
+      content: `Imported from ${externalTemplate.app} • ${new Date().toLocaleDateString()}`,
+      visible: true,
+      locked: false,
+    });
+
+    // Use provided elements or starter elements
+    const elements = externalTemplate.elements && externalTemplate.elements.length > 0 
+      ? externalTemplate.elements 
+      : starterElements;
+
     const newTemplate: Template = {
       id: uuidv4(),
       name: `${externalTemplate.name} (Imported)`,
       description: externalTemplate.description || `Imported from ${externalTemplate.app}`,
-      elements: [],
+      elements,
       pageSize: 'A4',
       orientation: 'portrait',
       createdAt: new Date(),

@@ -16,6 +16,7 @@ interface ExternalTemplate {
   description?: string;
   category?: string;
   app: string;
+  elements?: any[];
 }
 
 const Editor: React.FC = () => {
