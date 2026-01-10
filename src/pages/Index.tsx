@@ -58,12 +58,12 @@ const Index: React.FC = () => {
             <span className="font-bold text-lg">DocBuilder</span>
           </div>
           <nav className="flex items-center gap-4">
-            <Link to="/editor">
-              <Button>
+            <Button asChild>
+              <Link to="/editor">
                 Open Editor
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </nav>
         </div>
       </header>
@@ -88,12 +88,12 @@ const Index: React.FC = () => {
           </p>
 
           <div className="flex items-center justify-center gap-4">
-            <Link to="/editor">
-              <Button size="lg" className="h-12 px-8">
+            <Button size="lg" className="h-12 px-8" asChild>
+              <Link to="/editor">
                 Start Building
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <Button variant="outline" size="lg" className="h-12 px-8">
               View Demo
             </Button>
@@ -228,12 +228,12 @@ const pdf = await response.blob();`}
           <p className="text-muted-foreground mb-8">
             Start creating professional PDF templates in minutes. No credit card required.
           </p>
-          <Link to="/editor">
-            <Button size="lg" className="h-12 px-10">
+          <Button size="lg" className="h-12 px-10" asChild>
+            <Link to="/editor">
               Open the Editor
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </section>
 
