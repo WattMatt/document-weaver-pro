@@ -4,20 +4,9 @@ import { EditorToolbar } from '@/components/editor/EditorToolbar';
 import { ElementsPalette } from '@/components/editor/ElementsPalette';
 import { PropertiesPanel } from '@/components/editor/PropertiesPanel';
 import { EditorCanvas } from '@/components/editor/EditorCanvas';
-import { TokensPanel } from '@/components/editor/TokensPanel';
 import { PreviewPanel } from '@/components/editor/PreviewPanel';
 import { TemplatesSidebar } from '@/components/editor/TemplatesSidebar';
-import { ApiIntegrationsPanel } from '@/components/editor/ApiIntegrationsPanel';
 import { ElementType } from '@/types/editor';
-
-interface ExternalTemplate {
-  id: string;
-  name: string;
-  description?: string;
-  category?: string;
-  app: string;
-  elements?: any[];
-}
 
 const Editor: React.FC = () => {
   const {
@@ -36,14 +25,10 @@ const Editor: React.FC = () => {
     saveTemplate,
     loadTemplate,
     createNewTemplate,
-    generatePublicToken,
-    importExternalTemplate,
   } = useEditorState();
 
-  const [showTokens, setShowTokens] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
-  const [showApiIntegrations, setShowApiIntegrations] = useState(true);
 
   const handleAddElement = (type: ElementType) => {
     addElement(type);
@@ -64,19 +49,10 @@ const Editor: React.FC = () => {
         onPreview={() => setShowPreview(true)}
         onNewTemplate={createNewTemplate}
         onUpdateName={updateTemplateName}
-        onOpenTokens={() => setShowTokens(true)}
       />
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
-        {/* API Integrations Panel */}
-        {showApiIntegrations && (
-          <ApiIntegrationsPanel
-            onImportTemplate={(template: ExternalTemplate) => importExternalTemplate(template)}
-            currentTemplate={state.currentTemplate}
-          />
-        )}
-
         {/* Templates Sidebar (optional) */}
         {showTemplates && (
           <TemplatesSidebar
@@ -114,14 +90,6 @@ const Editor: React.FC = () => {
       </div>
 
       {/* Modals */}
-      <TokensPanel
-        isOpen={showTokens}
-        onClose={() => setShowTokens(false)}
-        publicToken={state.currentTemplate?.publicToken}
-        integrationTokens={state.currentTemplate?.integrationTokens}
-        onGeneratePublicToken={generatePublicToken}
-      />
-
       <PreviewPanel
         isOpen={showPreview}
         onClose={() => setShowPreview(false)}

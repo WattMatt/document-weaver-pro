@@ -13,7 +13,6 @@ import {
   FileText,
   Plus,
   Settings,
-  Key
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -44,7 +43,6 @@ interface EditorToolbarProps {
   onPreview: () => void;
   onNewTemplate: () => void;
   onUpdateName: (name: string) => void;
-  onOpenTokens: () => void;
 }
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
@@ -59,7 +57,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   onPreview,
   onNewTemplate,
   onUpdateName,
-  onOpenTokens,
 }) => {
   const [isEditingName, setIsEditingName] = useState(false);
 
@@ -192,10 +189,6 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm" className="h-8" onClick={onOpenTokens}>
-          <Key className="w-4 h-4 mr-1.5" />
-          Tokens
-        </Button>
         <Button variant="outline" size="sm" className="h-8" onClick={onPreview}>
           <Eye className="w-4 h-4 mr-1.5" />
           Preview
