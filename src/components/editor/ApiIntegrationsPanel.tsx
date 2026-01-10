@@ -82,7 +82,7 @@ export const ApiIntegrationsPanel: React.FC<ApiIntegrationsPanelProps> = ({
               description: t.description,
               category: t.category || 'Inspection',
               app: 'wm-compliance',
-              elements: t.sections, // Pass sections as elements for import
+              // Don't pass sections as elements - let importExternalTemplate generate proper DocumentElements
             });
           });
         }
