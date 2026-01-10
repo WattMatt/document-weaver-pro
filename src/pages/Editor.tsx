@@ -7,7 +7,16 @@ import { EditorCanvas } from '@/components/editor/EditorCanvas';
 import { TokensPanel } from '@/components/editor/TokensPanel';
 import { PreviewPanel } from '@/components/editor/PreviewPanel';
 import { TemplatesSidebar } from '@/components/editor/TemplatesSidebar';
+import { ApiIntegrationsPanel } from '@/components/editor/ApiIntegrationsPanel';
 import { ElementType } from '@/types/editor';
+
+interface ExternalTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string;
+  app: string;
+}
 
 const Editor: React.FC = () => {
   const {
@@ -27,11 +36,13 @@ const Editor: React.FC = () => {
     loadTemplate,
     createNewTemplate,
     generatePublicToken,
+    importExternalTemplate,
   } = useEditorState();
 
   const [showTokens, setShowTokens] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showApiIntegrations, setShowApiIntegrations] = useState(true);
 
   const handleAddElement = (type: ElementType) => {
     addElement(type);
@@ -57,6 +68,13 @@ const Editor: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex overflow-hidden">
+        {/* API Integrations Panel */}
+        {showApiIntegrations && (
+          <ApiIntegrationsPanel
+            onImportTemplate={(template: ExternalTemplate) => importExternalTemplate(template)}
+          />
+        )}
+
         {/* Templates Sidebar (optional) */}
         {showTemplates && (
           <TemplatesSidebar

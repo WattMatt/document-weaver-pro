@@ -61,6 +61,8 @@ export interface Template {
   updatedAt: Date;
   publicToken?: string;
   integrationTokens?: IntegrationToken[];
+  sourceApp?: string;
+  sourceTemplateId?: string;
 }
 
 export interface IntegrationToken {

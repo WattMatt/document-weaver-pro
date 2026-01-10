@@ -199,6 +199,38 @@ export const useEditorState = () => {
     return token;
   }, []);
 
+  const importExternalTemplate = useCallback((externalTemplate: { 
+    id: string; 
+    name: string; 
+    description?: string;
+    category?: string;
+    app: string;
+  }) => {
+    const newTemplate: Template = {
+      id: uuidv4(),
+      name: `${externalTemplate.name} (Imported)`,
+      description: externalTemplate.description || `Imported from ${externalTemplate.app}`,
+      elements: [],
+      pageSize: 'A4',
+      orientation: 'portrait',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      sourceApp: externalTemplate.app,
+      sourceTemplateId: externalTemplate.id,
+    };
+
+    setState(prev => ({
+      ...prev,
+      currentTemplate: newTemplate,
+      selectedElementId: null,
+    }));
+
+    // Also add to templates list
+    setTemplates(prev => [...prev, newTemplate]);
+
+    return newTemplate;
+  }, []);
+
   const selectedElement = state.currentTemplate?.elements.find(
     el => el.id === state.selectedElementId
   ) || null;
@@ -220,5 +252,6 @@ export const useEditorState = () => {
     loadTemplate,
     createNewTemplate,
     generatePublicToken,
+    importExternalTemplate,
   };
 };
