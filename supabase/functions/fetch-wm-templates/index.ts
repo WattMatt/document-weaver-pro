@@ -31,11 +31,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch templates from WM Compliance app
+    // WM Compliance app URL
     const wmComplianceUrl = 'https://wm-compliance.lovable.app'
     
-    // Try to fetch available templates/reports
-    const templatesResponse = await fetch(`${wmComplianceUrl}/api/templates`, {
+    // Fetch templates from WM Compliance app's edge function
+    // The wm-compliance app needs to have a 'templates' edge function deployed
+    // Try the Supabase functions endpoint pattern first
+    let templatesResponse = await fetch(`${wmComplianceUrl}/functions/v1/templates`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${wmComplianceApiKey}`,
@@ -43,50 +45,35 @@ Deno.serve(async (req) => {
       },
     })
 
-    // If the templates endpoint doesn't exist, try alternative endpoints
+    // Fallback: try direct api route
     if (!templatesResponse.ok) {
-      // Try fetching from a reports endpoint
-      const reportsResponse = await fetch(`${wmComplianceUrl}/api/reports`, {
+      templatesResponse = await fetch(`${wmComplianceUrl}/api/templates`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${wmComplianceApiKey}`,
           'Content-Type': 'application/json',
         },
       })
+    }
 
-      if (!reportsResponse.ok) {
-        // Return info about connection status and available endpoints to discover
-        return new Response(
-          JSON.stringify({
-            success: true,
-            message: 'Connected to WM Compliance app successfully',
-            connection: {
-              url: wmComplianceUrl,
-              status: 'connected',
-              apiKeyConfigured: true,
-            },
-            discovery: {
-              note: 'Standard API endpoints not found. You may need to configure the WM Compliance app to expose template/report APIs.',
-              triedEndpoints: ['/api/templates', '/api/reports'],
-              suggestion: 'Create an edge function in your WM Compliance app that exposes available PDF templates and reports.'
-            },
-            templates: [],
-            reports: []
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-      }
-
-      const reportsData = await reportsResponse.json()
+    // If the templates endpoint doesn't exist, return discovery info
+    if (!templatesResponse.ok) {
       return new Response(
         JSON.stringify({
           success: true,
+          message: 'Connected to WM Compliance app - API endpoints not yet configured',
           connection: {
             url: wmComplianceUrl,
             status: 'connected',
+            apiKeyConfigured: true,
+          },
+          discovery: {
+            note: 'Template API endpoints not found on WM Compliance app.',
+            triedEndpoints: ['/functions/v1/templates', '/api/templates'],
+            suggestion: 'Create a "templates" edge function in your WM Compliance app that exposes available PDF templates.'
           },
           templates: [],
-          reports: reportsData
+          reports: []
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
@@ -101,8 +88,8 @@ Deno.serve(async (req) => {
           url: wmComplianceUrl,
           status: 'connected',
         },
-        templates: templatesData,
-        reports: []
+        templates: templatesData.templates || templatesData,
+        reports: templatesData.reports || []
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
