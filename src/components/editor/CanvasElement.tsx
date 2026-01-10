@@ -123,11 +123,12 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   };
 
   const renderContent = () => {
+    const style = element.style || {};
     const contentStyle: React.CSSProperties = {
-      fontSize: element.style.fontSize,
-      fontWeight: element.style.fontWeight as any,
-      color: element.style.color,
-      textAlign: element.style.textAlign,
+      fontSize: style.fontSize,
+      fontWeight: style.fontWeight as any,
+      color: style.color,
+      textAlign: style.textAlign,
       width: '100%',
       height: '100%',
     };
@@ -173,7 +174,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         );
 
       case 'table':
-        const { rows = 3, cols = 3, cells = [] } = element.tableData || {};
+        const { rows = 3, cols = 3, cells = [] } = element.tableData || { rows: 3, cols: 3, cells: [] };
         return (
           <table className="w-full h-full border-collapse text-xs">
             <tbody>
@@ -196,12 +197,12 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
       case 'shape':
         const shapeStyle: React.CSSProperties = {
-          backgroundColor: element.style.backgroundColor,
-          borderRadius: element.shapeType === 'circle' ? '50%' : element.style.borderRadius,
+          backgroundColor: style.backgroundColor,
+          borderRadius: element.shapeType === 'circle' ? '50%' : style.borderRadius,
         };
         if (element.shapeType === 'line') {
           return (
-            <div className="w-full h-0.5 bg-current" style={{ backgroundColor: element.style.color }} />
+            <div className="w-full h-0.5 bg-current" style={{ backgroundColor: style.color }} />
           );
         }
         return <div className="w-full h-full" style={shapeStyle} />;
@@ -223,6 +224,12 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
 
   if (element.visible === false) return null;
 
+  // Defensive checks for required properties
+  if (!element.position || !element.size) {
+    console.warn('CanvasElement: Missing position or size for element', element.id);
+    return null;
+  }
+
   return (
     <div
       ref={elementRef}
@@ -232,14 +239,14 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         element.locked && "cursor-not-allowed opacity-75"
       )}
       style={{
-        left: element.position.x,
-        top: element.position.y,
-        width: element.size.width,
-        height: element.size.height,
-        backgroundColor: element.style.backgroundColor !== 'transparent' ? element.style.backgroundColor : undefined,
-        borderRadius: element.style.borderRadius,
-        opacity: element.style.opacity,
-        padding: element.style.padding,
+        left: element.position?.x ?? 0,
+        top: element.position?.y ?? 0,
+        width: element.size?.width ?? 100,
+        height: element.size?.height ?? 50,
+        backgroundColor: element.style?.backgroundColor !== 'transparent' ? element.style?.backgroundColor : undefined,
+        borderRadius: element.style?.borderRadius,
+        opacity: element.style?.opacity,
+        padding: element.style?.padding,
       }}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}
