@@ -98,15 +98,31 @@ Deno.serve(async (req) => {
 
     const templatesData = await templatesResponse.json()
     
+    // Parse inspectionTemplates from the response (this is the array WM Compliance returns)
+    const inspectionTemplates = templatesData.inspectionTemplates || []
+    const reportTypes = templatesData.reportTypes || []
+    
+    // Map inspection templates to a standard format
+    const templates = inspectionTemplates.map((t: any) => ({
+      id: t.id,
+      name: t.name || t.title || 'Untitled Template',
+      description: t.description || '',
+      category: t.category || 'Inspection',
+      type: t.type,
+      fields: t.fields,
+      sections: t.sections,
+    }))
+    
     return new Response(
       JSON.stringify({
         success: true,
         connection: {
-          url: wmComplianceBaseUrl,
+          url: `${wmComplianceBaseUrl}/templates`,
           status: 'connected',
         },
-        templates: templatesData.templates || templatesData,
-        reports: templatesData.reports || []
+        templates,
+        reportTypes,
+        raw: templatesData, // Include raw data for debugging
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )

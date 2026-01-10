@@ -72,22 +72,25 @@ export const ApiIntegrationsPanel: React.FC<ApiIntegrationsPanelProps> = ({
 
         const fetchedTemplates: ExternalTemplate[] = [];
         
-        // Process templates
-        if (data.templates && Array.isArray(data.templates)) {
-          data.templates.forEach((t: any) => {
+        // Process inspection templates (primary source from WM Compliance)
+        const inspectionTemplates = data.templates || data.raw?.inspectionTemplates || [];
+        if (Array.isArray(inspectionTemplates)) {
+          inspectionTemplates.forEach((t: any) => {
             fetchedTemplates.push({
               id: t.id || t.template_id,
               name: t.name || t.title || 'Untitled Template',
               description: t.description,
-              category: t.category || 'Template',
+              category: t.category || 'Inspection',
               app: 'wm-compliance',
+              elements: t.sections, // Pass sections as elements for import
             });
           });
         }
 
-        // Process reports
-        if (data.reports && Array.isArray(data.reports)) {
-          data.reports.forEach((r: any) => {
+        // Process report types as additional templates
+        const reportTypes = data.reportTypes || data.raw?.reportTypes || [];
+        if (Array.isArray(reportTypes)) {
+          reportTypes.forEach((r: any) => {
             fetchedTemplates.push({
               id: r.id || r.report_id,
               name: r.name || r.title || 'Untitled Report',
