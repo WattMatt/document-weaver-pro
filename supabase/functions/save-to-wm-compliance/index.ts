@@ -29,9 +29,9 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json()
-    const { template, action = 'save' } = body
+    const { template, action = 'update' } = body
 
-    if (!template) {
+    if (!template && action !== 'delete') {
       return new Response(
         JSON.stringify({ error: 'Template data is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -39,32 +39,36 @@ Deno.serve(async (req) => {
     }
 
     // WM Compliance Supabase edge function URL
-    const wmComplianceBaseUrl = 'https://oltzgidkjxwsukvkomof.supabase.co/functions/v1'
+    const wmComplianceSaveUrl = 'https://oltzgidkjxwsukvkomof.supabase.co/functions/v1/save-template'
     
     // Prepare template data for WM Compliance
-    const templatePayload = {
-      id: template.sourceTemplateId || template.id,
-      name: template.name.replace(' (Imported)', ''),
-      description: template.description,
-      elements: template.elements,
-      pageSize: template.pageSize,
-      orientation: template.orientation,
-      updatedAt: new Date().toISOString(),
-      updatedBy: 'DocBuilder',
-      sourceDocBuilderId: template.id,
+    const templatePayload: Record<string, any> = {
+      action, // 'create', 'update', or 'delete'
+    }
+
+    if (template) {
+      templatePayload.template = {
+        id: template.sourceTemplateId || template.id,
+        name: template.name.replace(' (Imported)', ''),
+        description: template.description,
+        elements: template.elements,
+        sections: template.elements, // WM Compliance uses sections
+        pageSize: template.pageSize,
+        orientation: template.orientation,
+        updatedAt: new Date().toISOString(),
+        updatedBy: 'DocBuilder',
+        sourceDocBuilderId: template.id,
+      }
     }
 
     // Send to WM Compliance
-    const saveResponse = await fetch(`${wmComplianceBaseUrl}/save-template`, {
+    const saveResponse = await fetch(wmComplianceSaveUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${wmComplianceApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        template: templatePayload,
-        action,
-      }),
+      body: JSON.stringify(templatePayload),
     })
 
     // Check if the endpoint exists
