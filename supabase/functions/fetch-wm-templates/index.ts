@@ -31,13 +31,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // WM Compliance app URL
-    const wmComplianceUrl = 'https://wm-compliance.lovable.app'
+    // WM Compliance Supabase edge function URL
+    const wmComplianceTemplatesUrl = 'https://oltzgidkjxwsukvkomof.supabase.co/functions/v1/templates'
     
-    // Fetch templates from WM Compliance app's edge function
-    // The wm-compliance app needs to have a 'templates' edge function deployed
-    // Try the Supabase functions endpoint pattern first
-    let templatesResponse = await fetch(`${wmComplianceUrl}/functions/v1/templates`, {
+    // Fetch templates from WM Compliance edge function
+    const templatesResponse = await fetch(wmComplianceTemplatesUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${wmComplianceApiKey}`,
@@ -45,32 +43,16 @@ Deno.serve(async (req) => {
       },
     })
 
-    // Fallback: try direct api route
-    if (!templatesResponse.ok) {
-      templatesResponse = await fetch(`${wmComplianceUrl}/api/templates`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${wmComplianceApiKey}`,
-          'Content-Type': 'application/json',
-        },
-      })
-    }
-
     // If the templates endpoint doesn't exist, return discovery info
     if (!templatesResponse.ok) {
       return new Response(
         JSON.stringify({
-          success: true,
-          message: 'Connected to WM Compliance app - API endpoints not yet configured',
+          success: false,
+          message: 'Could not connect to WM Compliance templates API',
           connection: {
-            url: wmComplianceUrl,
-            status: 'connected',
-            apiKeyConfigured: true,
-          },
-          discovery: {
-            note: 'Template API endpoints not found on WM Compliance app.',
-            triedEndpoints: ['/functions/v1/templates', '/api/templates'],
-            suggestion: 'Create a "templates" edge function in your WM Compliance app that exposes available PDF templates.'
+            url: wmComplianceTemplatesUrl,
+            status: 'error',
+            statusCode: templatesResponse.status,
           },
           templates: [],
           reports: []
@@ -85,7 +67,7 @@ Deno.serve(async (req) => {
       JSON.stringify({
         success: true,
         connection: {
-          url: wmComplianceUrl,
+          url: wmComplianceTemplatesUrl,
           status: 'connected',
         },
         templates: templatesData.templates || templatesData,
