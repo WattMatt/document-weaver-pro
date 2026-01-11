@@ -292,7 +292,7 @@ export const useEditorState = () => {
         if (el.content && typeof el.content === 'string' && el.content.includes(findText)) {
           return {
             ...el,
-            content: el.content.replaceAll(findText, replaceText)
+            content: el.content.split(findText).join(replaceText)
           };
         }
         return el;

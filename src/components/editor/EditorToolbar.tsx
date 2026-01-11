@@ -42,6 +42,9 @@ interface EditorToolbarProps {
   onSave: () => void;
   onPreview: () => void;
   onNewTemplate: () => void;
+  onNewPresentation: () => void;
+  onExportPptx: () => void;
+  onUpdateName?: (name: string) => void;
   onUndo: () => void;
   onRedo: () => void;
   onCopyStyle: () => void;
@@ -225,7 +228,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         {isEditingName ? (
           <Input
             value={templateName}
-            onChange={(e) => onUpdateName(e.target.value)}
+            onChange={(e) => onUpdateName?.(e.target.value)}
             onBlur={() => setIsEditingName(false)}
             onKeyDown={(e) => e.key === 'Enter' && setIsEditingName(false)}
             className="h-7 w-64 text-center text-sm"
