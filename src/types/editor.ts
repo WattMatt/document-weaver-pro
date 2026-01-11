@@ -93,11 +93,17 @@ export interface ElementStyle {
   strokeWidth?: number;
   strokeColor?: string;
   textAlign?: 'left' | 'center' | 'right' | 'justify';
-  lineHeight?: number;
   letterSpacing?: number;
+  wordSpacing?: number;
+  lineHeight?: number;
+  textIndent?: number;
+  columnCount?: number;
+  columnGap?: number;
   padding?: number;
+  margin?: number;
   opacity?: number;
   boxShadow?: BoxShadow;
+  linkUrl?: string;
 }
 
 export interface TableCell {
@@ -162,8 +168,9 @@ export interface EditorState {
   snapToGrid: boolean;
   gridSize: number;
   clipboard: DocumentElement[];
-  undoStack: Template[];
-  redoStack: Template[];
+  copiedStyle?: ElementStyle;
+  undoStack: EditorState[];
+  redoStack: EditorState[];
 }
 
 // PDFMaker types for import/export

@@ -25,6 +25,11 @@ const Editor: React.FC = () => {
     saveTemplate,
     loadTemplate,
     createNewTemplate,
+    undo,
+    redo,
+    copyStyle,
+    pasteStyle,
+    findAndReplace,
   } = useEditorState();
 
   const [showPreview, setShowPreview] = useState(false);
@@ -49,6 +54,11 @@ const Editor: React.FC = () => {
         onPreview={() => setShowPreview(true)}
         onNewTemplate={createNewTemplate}
         onUpdateName={updateTemplateName}
+        onUndo={undo}
+        onRedo={redo}
+        onCopyStyle={() => state.selectedElementId && copyStyle(state.selectedElementId)}
+        onPasteStyle={() => state.selectedElementId && pasteStyle(state.selectedElementId)}
+        onFindAndReplace={findAndReplace}
       />
 
       {/* Main Content */}

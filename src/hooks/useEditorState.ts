@@ -46,7 +46,42 @@ export const useEditorState = () => {
 
   const [templates, setTemplates] = useState<Template[]>([]);
 
+  const addToUndoStack = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      undoStack: [...prev.undoStack, { ...prev, undoStack: [], redoStack: [] }],
+      redoStack: [],
+    }));
+  }, []);
+
+  const undo = useCallback(() => {
+    setState(prev => {
+      if (prev.undoStack.length === 0) return prev;
+      const previousState = prev.undoStack[prev.undoStack.length - 1];
+      const newUndoStack = prev.undoStack.slice(0, -1);
+      return {
+        ...previousState,
+        undoStack: newUndoStack,
+        redoStack: [...prev.redoStack, { ...prev, undoStack: [], redoStack: [] }],
+      };
+    });
+  }, []);
+
+  const redo = useCallback(() => {
+    setState(prev => {
+      if (prev.redoStack.length === 0) return prev;
+      const nextState = prev.redoStack[prev.redoStack.length - 1];
+      const newRedoStack = prev.redoStack.slice(0, -1);
+      return {
+        ...nextState,
+        undoStack: [...prev.undoStack, { ...prev, undoStack: [], redoStack: [] }],
+        redoStack: newRedoStack,
+      };
+    });
+  }, []);
+
   const addElement = useCallback((type: ElementType, position?: Position) => {
+    addToUndoStack();
     const newElement: DocumentElement = {
       id: uuidv4(),
       type,
@@ -87,9 +122,10 @@ export const useEditorState = () => {
     }));
 
     return newElement;
-  }, []);
+  }, [addToUndoStack]);
 
   const updateElement = useCallback((id: string, updates: Partial<DocumentElement>) => {
+    addToUndoStack();
     setState(prev => ({
       ...prev,
       currentTemplate: prev.currentTemplate ? {
@@ -100,9 +136,10 @@ export const useEditorState = () => {
         updatedAt: new Date(),
       } : null,
     }));
-  }, []);
+  }, [addToUndoStack]);
 
   const deleteElement = useCallback((id: string) => {
+    addToUndoStack();
     setState(prev => ({
       ...prev,
       currentTemplate: prev.currentTemplate ? {
@@ -112,12 +149,13 @@ export const useEditorState = () => {
       } : null,
       selectedElementId: prev.selectedElementId === id ? null : prev.selectedElementId,
     }));
-  }, []);
+  }, [addToUndoStack]);
 
   const duplicateElement = useCallback((id: string) => {
     const element = state.currentTemplate?.elements.find(el => el.id === id);
     if (!element) return;
 
+    addToUndoStack();
     const newElement: DocumentElement = {
       ...element,
       id: uuidv4(),
@@ -136,7 +174,7 @@ export const useEditorState = () => {
       } : null,
       selectedElementId: newElement.id,
     }));
-  }, [state.currentTemplate]);
+  }, [state.currentTemplate, addToUndoStack]);
 
   const selectElement = useCallback((id: string | null) => {
     setState(prev => ({ ...prev, selectedElementId: id }));
@@ -199,6 +237,48 @@ export const useEditorState = () => {
     el => el.id === state.selectedElementId
   ) || null;
 
+  const copyStyle = useCallback((id: string) => {
+    const element = state.currentTemplate?.elements.find(el => el.id === id);
+    if (element) {
+      setState(prev => ({
+        ...prev,
+        copiedStyle: { ...element.style }
+      }));
+    }
+  }, [state.currentTemplate]);
+
+  const pasteStyle = useCallback((id: string) => {
+    if (!state.copiedStyle) return;
+    updateElement(id, { style: { ...state.copiedStyle } });
+  }, [state.copiedStyle, updateElement]);
+
+  const findAndReplace = useCallback((findText: string, replaceText: string) => {
+    if (!findText) return;
+
+    setState(prev => {
+      if (!prev.currentTemplate) return prev;
+
+      const updatedElements = prev.currentTemplate.elements.map(el => {
+        if (el.content && typeof el.content === 'string' && el.content.includes(findText)) {
+          return {
+            ...el,
+            content: el.content.replaceAll(findText, replaceText)
+          };
+        }
+        return el;
+      });
+
+      return {
+        ...prev,
+        currentTemplate: {
+          ...prev.currentTemplate,
+          elements: updatedElements,
+          updatedAt: new Date(),
+        }
+      };
+    });
+  }, []);
+
   return {
     state,
     templates,
@@ -215,5 +295,10 @@ export const useEditorState = () => {
     saveTemplate,
     loadTemplate,
     createNewTemplate,
+    undo,
+    redo,
+    copyStyle,
+    pasteStyle,
+    findAndReplace,
   };
 };

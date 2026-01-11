@@ -47,6 +47,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { GradientPicker } from './GradientPicker';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -490,855 +492,793 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             </>
           )}
 
-          {/* Colors Section */}
-          <Section title="Fill & Background">
-            <div className="mb-3">
-              <Label className="text-xs text-muted-foreground mb-1.5 block">Fill Type</Label>
-              <div className="flex bg-muted p-1 rounded-md">
-                <button
-                  className={cn(
-                    "flex-1 text-xs py-1 px-2 rounded-sm transition-all",
-                    !element.style.gradient ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-                  )}
-                  onClick={() => updateStyle('gradient', undefined)}
-                >
-                  Solid
-                </button>
-                <button
-                  className={cn(
-                    "flex-1 text-xs py-1 px-2 rounded-sm transition-all",
-                    element.style.gradient ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
-                  )}
-                  onClick={() => updateStyle('gradient', {
-                    type: 'linear',
-                    angle: 90,
-                    stops: [
-                      { offset: 0, color: element.style.backgroundColor || '#ffffff' },
-                      { offset: 100, color: '#000000' }
-                    ]
-                  })}
-                >
-                  Gradient
-                </button>
-              </div>
-            </div>
 
-            {!element.style.gradient ? (
-              // Solid Color Mode
-              <>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">
-                    {isTextElement ? 'Text Color' : 'Fill Color'}
-                  </Label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={element.style.color || '#1a1a1a'}
-                      onChange={(e) => updateStyle('color', e.target.value)}
-                      className="w-8 h-7 rounded border cursor-pointer"
-                    />
-                    <Input
-                      value={element.style.color || '#1a1a1a'}
-                      onChange={(e) => updateStyle('color', e.target.value)}
-                      className="h-7 flex-1 text-xs font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-3">
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Background</Label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={element.style.backgroundColor === 'transparent' ? '#ffffff' : (element.style.backgroundColor || '#ffffff')}
-                      onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                      className="w-8 h-7 rounded border cursor-pointer"
-                    />
-                    <Input
-                      value={element.style.backgroundColor || 'transparent'}
-                      onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                      className="h-7 flex-1 text-xs font-mono"
-                      placeholder="transparent"
-                    />
-                  </div>
-                </div>
-              </>
-            ) : (
-              // Gradient Mode
-              <div className="space-y-3">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Type</Label>
-                    <Select
-                      value={element.style.gradient.type}
-                      onValueChange={(value) => updateStyle('gradient', { ...element.style.gradient!, type: value })}
-                    >
-                      <SelectTrigger className="h-7 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="linear">Linear</SelectItem>
-                        <SelectItem value="radial">Radial</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {element.style.gradient.type === 'linear' && (
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1.5 block">Angle</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          type="number"
-                          value={element.style.gradient.angle || 90}
-                          onChange={(e) => updateStyle('gradient', { ...element.style.gradient!, angle: Number(e.target.value) })}
-                          className="h-7 text-xs"
-                          min={0}
-                          max={360}
-                        />
-                        <span className="text-xs text-muted-foreground">deg</span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <Label className="text-xs text-muted-foreground">Color Stops</Label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-5 w-5 p-0"
-                      onClick={() => updateStyle('gradient', {
-                        ...element.style.gradient!,
-                        stops: [...element.style.gradient!.stops, { offset: 50, color: '#ffffff' }]
-                      })}
-                    >
-                      <Plus className="w-3 h-3" />
-                    </Button>
-                  </div>
-
-                  <div className="space-y-2">
-                    {element.style.gradient.stops.map((stop, index) => (
-                      <div key={index} className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={stop.color}
-                          onChange={(e) => {
-                            const newStops = [...element.style.gradient!.stops];
-                            newStops[index] = { ...stop, color: e.target.value };
-                            updateStyle('gradient', { ...element.style.gradient!, stops: newStops });
-                          }}
-                          className="w-6 h-6 rounded border cursor-pointer flex-shrink-0"
-                        />
-                        <Slider
-                          value={[stop.offset]}
-                          onValueChange={([value]) => {
-                            const newStops = [...element.style.gradient!.stops];
-                            newStops[index] = { ...stop, offset: value };
-                            updateStyle('gradient', { ...element.style.gradient!, stops: newStops });
-                          }}
-                          min={0}
-                          max={100}
-                          className="flex-1"
-                        />
-                        <span className="text-xs font-mono w-8 text-right">{stop.offset}%</span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                          disabled={element.style.gradient!.stops.length <= 2}
-                          onClick={() => {
-                            const newStops = element.style.gradient!.stops.filter((_, i) => i !== index);
-                            updateStyle('gradient', { ...element.style.gradient!, stops: newStops });
-                          }}
-                        >
-                          <Minus className="w-3 h-3" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </Section>
-
-          <Separator />
-
-          {/* Border Section */}
-          <Section title="Border" defaultOpen={false}>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">Width</Label>
-                <Input
-                  type="number"
-                  value={element.style.borderWidth || 0}
-                  onChange={(e) => updateStyle('borderWidth', Number(e.target.value))}
-                  min={0}
-                  max={20}
-                  className="h-7 text-xs"
-                />
-              </div>
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">Style</Label>
-                <Select
-                  value={element.style.border?.style || 'solid'}
-                  onValueChange={(value) => updateStyle('border', { ...element.style.border, style: value })}
-                >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="solid">Solid</SelectItem>
-                    <SelectItem value="dashed">Dashed</SelectItem>
-                    <SelectItem value="dotted">Dotted</SelectItem>
-                    <SelectItem value="double">Double</SelectItem>
-                    <SelectItem value="none">None</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1.5 block">Color</Label>
+          {!element.style.gradient && !isTextElement && (
+            <div className="mt-3">
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Solid Color</Label>
               <div className="flex items-center gap-2">
                 <input
                   type="color"
-                  value={element.style.borderColor || '#e5e7eb'}
-                  onChange={(e) => updateStyle('borderColor', e.target.value)}
+                  value={element.style.backgroundColor === 'transparent' ? '#ffffff' : (element.style.backgroundColor || '#ffffff')}
+                  onChange={(e) => updateStyle('backgroundColor', e.target.value)}
                   className="w-8 h-7 rounded border cursor-pointer"
                 />
                 <Input
-                  value={element.style.borderColor || '#e5e7eb'}
-                  onChange={(e) => updateStyle('borderColor', e.target.value)}
+                  value={element.style.backgroundColor || 'transparent'}
+                  onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+                  className="h-7 flex-1 text-xs font-mono"
+                  placeholder="transparent"
+                />
+              </div>
+            </div>
+          )}
+        </Section>
+
+        <Separator />
+
+        {/* Typography Section (Enhanced) */}
+        {isTextElement && (
+          <Section title="Typography & Layout">
+            <Tabs defaultValue="text" className="w-full">
+              <TabsList className="w-full grid grid-cols-3 h-8 mb-2">
+                <TabsTrigger value="text" className="text-xs">Text</TabsTrigger>
+                <TabsTrigger value="style" className="text-xs">Style</TabsTrigger>
+                <TabsTrigger value="layout" className="text-xs">Layout</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="text" className="space-y-3">
+                {/* Font Family */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Font</Label>
+                  <Select
+                    value={element.style.fontFamily || 'Inter, sans-serif'}
+                    onValueChange={(value) => updateStyle('fontFamily', value)}
+                  >
+                    <SelectTrigger className="h-8 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FONT_FAMILIES.map((font) => (
+                        <SelectItem key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                          {font.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Size & Weight */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Size</Label>
+                    <Input
+                      type="number"
+                      value={element.style.fontSize || 14}
+                      onChange={(e) => updateStyle('fontSize', Number(e.target.value))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Weight</Label>
+                    <Select
+                      value={element.style.fontWeight || 'normal'}
+                      onValueChange={(value) => updateStyle('fontWeight', value)}
+                    >
+                      <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="bold">Bold</SelectItem>
+                        <SelectItem value="100">Thin</SelectItem>
+                        <SelectItem value="300">Light</SelectItem>
+                        <SelectItem value="900">Black</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Alignment */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Align</Label>
+                  <ToggleGroup
+                    type="single"
+                    value={element.style.textAlign || 'left'}
+                    onValueChange={(value) => value && updateStyle('textAlign', value)}
+                    className="justify-start border rounded-md p-0.5"
+                  >
+                    <ToggleGroupItem value="left" className="h-6 w-7 p-0"><AlignLeft className="w-3.5 h-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="center" className="h-6 w-7 p-0"><AlignCenter className="w-3.5 h-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="right" className="h-6 w-7 p-0"><AlignRight className="w-3.5 h-3.5" /></ToggleGroupItem>
+                    <ToggleGroupItem value="justify" className="h-6 w-7 p-0"><AlignJustify className="w-3.5 h-3.5" /></ToggleGroupItem>
+                  </ToggleGroup>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="style" className="space-y-3">
+                {/* Decorations */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Decoration</Label>
+                  <div className="flex gap-1">
+                    <Button
+                      variant={element.style.fontStyle === 'italic' ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 w-8 p-0"
+                      onClick={() => updateStyle('fontStyle', element.style.fontStyle === 'italic' ? 'normal' : 'italic')}
+                    >
+                      <Italic className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant={element.style.textDecoration === 'underline' ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 w-8 p-0"
+                      onClick={() => updateStyle('textDecoration', element.style.textDecoration === 'underline' ? 'none' : 'underline')}
+                    >
+                      <Underline className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant={element.style.textDecoration === 'line-through' ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 w-8 p-0"
+                      onClick={() => updateStyle('textDecoration', element.style.textDecoration === 'line-through' ? 'none' : 'line-through')}
+                    >
+                      <Strikethrough className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Spacing */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Line Height</Label>
+                    <Input
+                      type="number"
+                      step={0.1}
+                      value={element.style.lineHeight || 1.4}
+                      onChange={(e) => updateStyle('lineHeight', Number(e.target.value))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Letter Space</Label>
+                    <Input
+                      type="number"
+                      value={element.style.letterSpacing || 0}
+                      onChange={(e) => updateStyle('letterSpacing', Number(e.target.value))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Transform</Label>
+                  <Select
+                    value={element.style.textTransform || 'none'}
+                    onValueChange={(value) => updateStyle('textTransform', value)}
+                  >
+                    <SelectTrigger className="h-7 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      <SelectItem value="uppercase">UPPERCASE</SelectItem>
+                      <SelectItem value="lowercase">lowercase</SelectItem>
+                      <SelectItem value="capitalize">Capitalize</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="layout" className="space-y-3">
+                {/* Columns */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Columns</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={4}
+                      value={element.style.columnCount || 1}
+                      onChange={(e) => updateStyle('columnCount', Number(e.target.value))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Gap</Label>
+                    <Input
+                      type="number"
+                      value={element.style.columnGap || 20}
+                      onChange={(e) => updateStyle('columnGap', Number(e.target.value))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Indentation & Padding */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Indent (px)</Label>
+                    <Input
+                      type="number"
+                      value={element.style.textIndent || 0}
+                      onChange={(e) => updateStyle('textIndent', Number(e.target.value))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Padding</Label>
+                    <Input
+                      type="number"
+                      value={element.style.padding || 0}
+                      onChange={(e) => updateStyle('padding', Number(e.target.value))}
+                      className="h-7 text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Link */}
+                <div className="pt-1">
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Hyperlink</Label>
+                  <div className="relative">
+                    <LinkIcon className="absolute left-2 top-1.5 w-3 h-3 text-muted-foreground" />
+                    <Input
+                      value={element.style.linkUrl || ''}
+                      onChange={(e) => updateStyle('linkUrl', e.target.value)}
+                      placeholder="https://..."
+                      className="h-7 text-xs pl-7"
+                    />
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </Section>
+        )}<Label className="text-xs text-muted-foreground mb-1.5 block">Shadow Color</Label>
+        <Input
+          value={element.style.boxShadow?.color || 'rgba(0, 0, 0, 0.15)'}
+          onChange={(e) => updateStyle('boxShadow', {
+            ...element.style.boxShadow,
+            color: e.target.value,
+          })}
+          className="h-7 text-xs font-mono"
+          placeholder="rgba(0, 0, 0, 0.15)"
+        />
+    </div>
+              </>
+            )}
+          </Section >
+
+  <Separator />
+
+{/* Content Section */ }
+{
+  isTextElement && (
+    <Section title="Content">
+      <div className="flex flex-wrap gap-1.5 mb-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-6 px-2 text-[10px]"
+          onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{page}}' })}
+        >
+          <Hash className="w-3 h-3 mr-1" />
+          Page #
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-6 px-2 text-[10px]"
+          onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{total_pages}}' })}
+        >
+          <Copy className="w-3 h-3 mr-1" />
+          Total Pages
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-6 px-2 text-[10px]"
+          onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{date}}' })}
+        >
+          <Calendar className="w-3 h-3 mr-1" />
+          Date
+        </Button>
+      </div>
+      <textarea
+        value={element.content || ''}
+        onChange={(e) => onUpdateElement(element.id, { content: e.target.value })}
+        className="w-full h-24 px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+        placeholder="Enter content..."
+      />
+
+      {element.type === 'dynamic-field' && (
+        <div className="mt-2">
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Field Name</Label>
+          <Input
+            value={element.dynamicField || ''}
+            onChange={(e) => onUpdateElement(element.id, { dynamicField: e.target.value })}
+            placeholder="e.g., customer_name"
+            className="h-7 text-xs font-mono"
+          />
+          <p className="text-[10px] text-muted-foreground mt-1">
+            This field will be populated via API
+          </p>
+        </div>
+      )}
+    </Section>
+  )
+}
+
+{/* Image Section */ }
+{
+  isImageElement && (
+    <>
+      <Section title="Image">
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Image URL</Label>
+          <Input
+            value={element.imageUrl || ''}
+            onChange={(e) => onUpdateElement(element.id, { imageUrl: e.target.value })}
+            placeholder="https://..."
+            className="h-7 text-xs"
+          />
+        </div>
+
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Fit Mode</Label>
+          <Select
+            value={element.objectFit || 'contain'}
+            onValueChange={(value) => onUpdateElement(element.id, { objectFit: value as any })}
+          >
+            <SelectTrigger className="h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="contain">Contain</SelectItem>
+              <SelectItem value="cover">Cover</SelectItem>
+              <SelectItem value="fill">Fill</SelectItem>
+              <SelectItem value="none">None</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Flip</Label>
+          <div className="flex items-center gap-1">
+            <Button
+              variant={element.flipHorizontal ? 'default' : 'outline'}
+              size="sm"
+              className="h-7 flex-1"
+              onClick={() => onUpdateElement(element.id, { flipHorizontal: !element.flipHorizontal })}
+            >
+              <FlipHorizontal2 className="w-3.5 h-3.5 mr-1" />
+              Horizontal
+            </Button>
+            <Button
+              variant={element.flipVertical ? 'default' : 'outline'}
+              size="sm"
+              className="h-7 flex-1"
+              onClick={() => onUpdateElement(element.id, { flipVertical: !element.flipVertical })}
+            >
+              <FlipVertical2 className="w-3.5 h-3.5 mr-1" />
+              Vertical
+            </Button>
+          </div>
+        </div>
+
+        {/* Image Filters */}
+        <div className="space-y-2 pt-2 border-t">
+          <Label className="text-xs text-muted-foreground block">Filters</Label>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs w-20">Brightness</span>
+            <Slider
+              value={[element.imageFilters?.brightness || 100]}
+              onValueChange={([value]) => onUpdateElement(element.id, {
+                imageFilters: { ...element.imageFilters, brightness: value }
+              })}
+              min={0}
+              max={200}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.brightness || 100}%</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs w-20">Contrast</span>
+            <Slider
+              value={[element.imageFilters?.contrast || 100]}
+              onValueChange={([value]) => onUpdateElement(element.id, {
+                imageFilters: { ...element.imageFilters, contrast: value }
+              })}
+              min={0}
+              max={200}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.contrast || 100}%</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs w-20">Saturation</span>
+            <Slider
+              value={[element.imageFilters?.saturation || 100]}
+              onValueChange={([value]) => onUpdateElement(element.id, {
+                imageFilters: { ...element.imageFilters, saturation: value }
+              })}
+              min={0}
+              max={200}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.saturation || 100}%</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs w-20">Blur</span>
+            <Slider
+              value={[element.imageFilters?.blur || 0]}
+              onValueChange={([value]) => onUpdateElement(element.id, {
+                imageFilters: { ...element.imageFilters, blur: value }
+              })}
+              min={0}
+              max={20}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.blur || 0}px</span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs w-20">Grayscale</span>
+            <Slider
+              value={[element.imageFilters?.grayscale || 0]}
+              onValueChange={([value]) => onUpdateElement(element.id, {
+                imageFilters: { ...element.imageFilters, grayscale: value }
+              })}
+              min={0}
+              max={100}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.grayscale || 0}%</span>
+          </div>
+        </div>
+      </Section>
+      <Separator />
+    </>
+  )
+}
+
+{/* Shape Section */ }
+{
+  isShapeElement && (
+    <>
+      <Section title="Shape">
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Shape Type</Label>
+          <Select
+            value={element.shapeType || 'rectangle'}
+            onValueChange={(value) => onUpdateElement(element.id, { shapeType: value as ShapeType })}
+          >
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="rectangle">Rectangle</SelectItem>
+              <SelectItem value="circle">Circle</SelectItem>
+              <SelectItem value="ellipse">Ellipse</SelectItem>
+              <SelectItem value="triangle">Triangle</SelectItem>
+              <SelectItem value="diamond">Diamond</SelectItem>
+              <SelectItem value="pentagon">Pentagon</SelectItem>
+              <SelectItem value="hexagon">Hexagon</SelectItem>
+              <SelectItem value="star">Star</SelectItem>
+              <SelectItem value="arrow">Arrow</SelectItem>
+              <SelectItem value="line">Line</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Stroke Width</Label>
+          <div className="flex items-center gap-2">
+            <Slider
+              value={[element.style.strokeWidth || 0]}
+              onValueChange={([value]) => updateStyle('strokeWidth', value)}
+              min={0}
+              max={20}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground w-8">{element.style.strokeWidth || 0}px</span>
+          </div>
+        </div>
+
+        {(element.style.strokeWidth || 0) > 0 && (
+          <>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Stroke Color</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={element.style.strokeColor || '#1a1a1a'}
+                  onChange={(e) => updateStyle('strokeColor', e.target.value)}
+                  className="w-8 h-7 rounded border cursor-pointer"
+                />
+                <Input
+                  value={element.style.strokeColor || '#1a1a1a'}
+                  onChange={(e) => updateStyle('strokeColor', e.target.value)}
                   className="h-7 flex-1 text-xs font-mono"
                 />
               </div>
             </div>
 
             <div>
-              <Label className="text-xs text-muted-foreground mb-1.5 block">Border Radius</Label>
-              <div className="flex items-center gap-2">
-                <Slider
-                  value={[typeof element.style.borderRadius === 'number' ? element.style.borderRadius : 0]}
-                  onValueChange={([value]) => updateStyle('borderRadius', value)}
-                  min={0}
-                  max={50}
-                  step={1}
-                  className="flex-1"
-                />
-                <span className="text-xs text-muted-foreground w-8 text-right">
-                  {typeof element.style.borderRadius === 'number' ? element.style.borderRadius : 0}px
-                </span>
-              </div>
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Stroke Style</Label>
+              <Select
+                value={element.style.strokeStyle || 'solid'}
+                onValueChange={(value) => updateStyle('strokeStyle', value)}
+              >
+                <SelectTrigger className="h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="solid">Solid</SelectItem>
+                  <SelectItem value="dashed">Dashed</SelectItem>
+                  <SelectItem value="dotted">Dotted</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </Section>
+          </>
+        )}
+      </Section>
+      <Separator />
+    </>
+  )
+}
 
-          <Separator />
-
-          {/* Shadow Section */}
-          <Section title="Shadow" defaultOpen={false}>
-            <div className="flex items-center justify-between">
-              <Label className="text-xs">Enable Box Shadow</Label>
-              <Switch
-                checked={element.style.boxShadow?.enabled || false}
-                onCheckedChange={(checked) => updateStyle('boxShadow', {
-                  ...DEFAULT_BOX_SHADOW,
-                  ...element.style.boxShadow,
-                  enabled: checked,
-                })}
-              />
-            </div>
-
-            {element.style.boxShadow?.enabled && (
-              <>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Offset X</Label>
-                    <Input
-                      type="number"
-                      value={element.style.boxShadow?.offsetX || 0}
-                      onChange={(e) => updateStyle('boxShadow', {
-                        ...element.style.boxShadow,
-                        offsetX: Number(e.target.value),
-                      })}
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Offset Y</Label>
-                    <Input
-                      type="number"
-                      value={element.style.boxShadow?.offsetY || 4}
-                      onChange={(e) => updateStyle('boxShadow', {
-                        ...element.style.boxShadow,
-                        offsetY: Number(e.target.value),
-                      })}
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Blur</Label>
-                    <Input
-                      type="number"
-                      value={element.style.boxShadow?.blur || 8}
-                      onChange={(e) => updateStyle('boxShadow', {
-                        ...element.style.boxShadow,
-                        blur: Number(e.target.value),
-                      })}
-                      min={0}
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Spread</Label>
-                    <Input
-                      type="number"
-                      value={element.style.boxShadow?.spread || 0}
-                      onChange={(e) => updateStyle('boxShadow', {
-                        ...element.style.boxShadow,
-                        spread: Number(e.target.value),
-                      })}
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Shadow Color</Label>
-                  <Input
-                    value={element.style.boxShadow?.color || 'rgba(0, 0, 0, 0.15)'}
-                    onChange={(e) => updateStyle('boxShadow', {
-                      ...element.style.boxShadow,
-                      color: e.target.value,
-                    })}
-                    className="h-7 text-xs font-mono"
-                    placeholder="rgba(0, 0, 0, 0.15)"
-                  />
-                </div>
-              </>
-            )}
-          </Section>
-
-          <Separator />
-
-          {/* Content Section */}
-          {isTextElement && (
-            <Section title="Content">
-              <div className="flex flex-wrap gap-1.5 mb-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-6 px-2 text-[10px]"
-                  onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{page}}' })}
-                >
-                  <Hash className="w-3 h-3 mr-1" />
-                  Page #
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-6 px-2 text-[10px]"
-                  onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{total_pages}}' })}
-                >
-                  <Copy className="w-3 h-3 mr-1" />
-                  Total Pages
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-6 px-2 text-[10px]"
-                  onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{date}}' })}
-                >
-                  <Calendar className="w-3 h-3 mr-1" />
-                  Date
-                </Button>
-              </div>
-              <textarea
-                value={element.content || ''}
-                onChange={(e) => onUpdateElement(element.id, { content: e.target.value })}
-                className="w-full h-24 px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter content..."
-              />
-
-              {element.type === 'dynamic-field' && (
-                <div className="mt-2">
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Field Name</Label>
-                  <Input
-                    value={element.dynamicField || ''}
-                    onChange={(e) => onUpdateElement(element.id, { dynamicField: e.target.value })}
-                    placeholder="e.g., customer_name"
-                    className="h-7 text-xs font-mono"
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    This field will be populated via API
-                  </p>
-                </div>
-              )}
-            </Section>
-          )}
-
-          {/* Image Section */}
-          {isImageElement && (
-            <>
-              <Section title="Image">
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Image URL</Label>
-                  <Input
-                    value={element.imageUrl || ''}
-                    onChange={(e) => onUpdateElement(element.id, { imageUrl: e.target.value })}
-                    placeholder="https://..."
-                    className="h-7 text-xs"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Fit Mode</Label>
-                  <Select
-                    value={element.objectFit || 'contain'}
-                    onValueChange={(value) => onUpdateElement(element.id, { objectFit: value as any })}
-                  >
-                    <SelectTrigger className="h-7 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="contain">Contain</SelectItem>
-                      <SelectItem value="cover">Cover</SelectItem>
-                      <SelectItem value="fill">Fill</SelectItem>
-                      <SelectItem value="none">None</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Flip</Label>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant={element.flipHorizontal ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-7 flex-1"
-                      onClick={() => onUpdateElement(element.id, { flipHorizontal: !element.flipHorizontal })}
-                    >
-                      <FlipHorizontal2 className="w-3.5 h-3.5 mr-1" />
-                      Horizontal
-                    </Button>
-                    <Button
-                      variant={element.flipVertical ? 'default' : 'outline'}
-                      size="sm"
-                      className="h-7 flex-1"
-                      onClick={() => onUpdateElement(element.id, { flipVertical: !element.flipVertical })}
-                    >
-                      <FlipVertical2 className="w-3.5 h-3.5 mr-1" />
-                      Vertical
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Image Filters */}
-                <div className="space-y-2 pt-2 border-t">
-                  <Label className="text-xs text-muted-foreground block">Filters</Label>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-20">Brightness</span>
-                    <Slider
-                      value={[element.imageFilters?.brightness || 100]}
-                      onValueChange={([value]) => onUpdateElement(element.id, {
-                        imageFilters: { ...element.imageFilters, brightness: value }
-                      })}
-                      min={0}
-                      max={200}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.brightness || 100}%</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-20">Contrast</span>
-                    <Slider
-                      value={[element.imageFilters?.contrast || 100]}
-                      onValueChange={([value]) => onUpdateElement(element.id, {
-                        imageFilters: { ...element.imageFilters, contrast: value }
-                      })}
-                      min={0}
-                      max={200}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.contrast || 100}%</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-20">Saturation</span>
-                    <Slider
-                      value={[element.imageFilters?.saturation || 100]}
-                      onValueChange={([value]) => onUpdateElement(element.id, {
-                        imageFilters: { ...element.imageFilters, saturation: value }
-                      })}
-                      min={0}
-                      max={200}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.saturation || 100}%</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-20">Blur</span>
-                    <Slider
-                      value={[element.imageFilters?.blur || 0]}
-                      onValueChange={([value]) => onUpdateElement(element.id, {
-                        imageFilters: { ...element.imageFilters, blur: value }
-                      })}
-                      min={0}
-                      max={20}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.blur || 0}px</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs w-20">Grayscale</span>
-                    <Slider
-                      value={[element.imageFilters?.grayscale || 0]}
-                      onValueChange={([value]) => onUpdateElement(element.id, {
-                        imageFilters: { ...element.imageFilters, grayscale: value }
-                      })}
-                      min={0}
-                      max={100}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-8">{element.imageFilters?.grayscale || 0}%</span>
-                  </div>
-                </div>
-              </Section>
-              <Separator />
-            </>
-          )}
-
-          {/* Shape Section */}
-          {isShapeElement && (
-            <>
-              <Section title="Shape">
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Shape Type</Label>
-                  <Select
-                    value={element.shapeType || 'rectangle'}
-                    onValueChange={(value) => onUpdateElement(element.id, { shapeType: value as ShapeType })}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="rectangle">Rectangle</SelectItem>
-                      <SelectItem value="circle">Circle</SelectItem>
-                      <SelectItem value="ellipse">Ellipse</SelectItem>
-                      <SelectItem value="triangle">Triangle</SelectItem>
-                      <SelectItem value="diamond">Diamond</SelectItem>
-                      <SelectItem value="pentagon">Pentagon</SelectItem>
-                      <SelectItem value="hexagon">Hexagon</SelectItem>
-                      <SelectItem value="star">Star</SelectItem>
-                      <SelectItem value="arrow">Arrow</SelectItem>
-                      <SelectItem value="line">Line</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Stroke Width</Label>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      value={[element.style.strokeWidth || 0]}
-                      onValueChange={([value]) => updateStyle('strokeWidth', value)}
-                      min={0}
-                      max={20}
-                      className="flex-1"
-                    />
-                    <span className="text-xs text-muted-foreground w-8">{element.style.strokeWidth || 0}px</span>
-                  </div>
-                </div>
-
-                {(element.style.strokeWidth || 0) > 0 && (
-                  <>
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1.5 block">Stroke Color</Label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="color"
-                          value={element.style.strokeColor || '#1a1a1a'}
-                          onChange={(e) => updateStyle('strokeColor', e.target.value)}
-                          className="w-8 h-7 rounded border cursor-pointer"
-                        />
-                        <Input
-                          value={element.style.strokeColor || '#1a1a1a'}
-                          onChange={(e) => updateStyle('strokeColor', e.target.value)}
-                          className="h-7 flex-1 text-xs font-mono"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label className="text-xs text-muted-foreground mb-1.5 block">Stroke Style</Label>
-                      <Select
-                        value={element.style.strokeStyle || 'solid'}
-                        onValueChange={(value) => updateStyle('strokeStyle', value)}
-                      >
-                        <SelectTrigger className="h-7 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="solid">Solid</SelectItem>
-                          <SelectItem value="dashed">Dashed</SelectItem>
-                          <SelectItem value="dotted">Dotted</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
-                )}
-              </Section>
-              <Separator />
-            </>
-          )}
-
-          {/* List Section */}
-          {isListElement && (
-            <>
-              <Section title="List">
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">List Type</Label>
-                  <Select
-                    value={element.listType || 'bullet'}
-                    onValueChange={(value) => onUpdateElement(element.id, { listType: value as ListType })}
-                  >
-                    <SelectTrigger className="h-7 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bullet">Bullet Points</SelectItem>
-                      <SelectItem value="numbered">Numbered</SelectItem>
-                      <SelectItem value="none">None</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">List Items</Label>
-                  <textarea
-                    value={(element.listItems || []).join('\n')}
-                    onChange={(e) => onUpdateElement(element.id, {
-                      listItems: e.target.value.split('\n').filter(item => item.trim())
-                    })}
-                    className="w-full h-24 px-2 py-1.5 text-xs border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="Enter each item on a new line"
-                  />
-                </div>
-              </Section>
-              <Separator />
-            </>
-          )}
-
-          {/* Barcode Section */}
-          {isBarcodeElement && (
-            <>
-              <Section title="Barcode">
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Type</Label>
-                  <Select
-                    value={element.barcodeType || 'qr'}
-                    onValueChange={(value) => onUpdateElement(element.id, { barcodeType: value as BarcodeType })}
-                  >
-                    <SelectTrigger className="h-7 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="qr">QR Code</SelectItem>
-                      <SelectItem value="code128">Code 128</SelectItem>
-                      <SelectItem value="code39">Code 39</SelectItem>
-                      <SelectItem value="ean13">EAN-13</SelectItem>
-                      <SelectItem value="upc">UPC</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Value</Label>
-                  <Input
-                    value={element.barcodeValue || ''}
-                    onChange={(e) => onUpdateElement(element.id, { barcodeValue: e.target.value })}
-                    placeholder="Enter barcode value..."
-                    className="h-7 text-xs"
-                  />
-                </div>
-              </Section>
-              <Separator />
-            </>
-          )}
-
-          {/* Table Section */}
-          {isTableElement && (
-            <>
-              <Section title="Table">
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Rows</Label>
-                    <Input
-                      type="number"
-                      value={element.tableData?.rows || 3}
-                      onChange={(e) => {
-                        const rows = Number(e.target.value);
-                        const currentCells = element.tableData?.cells || [];
-                        const cols = element.tableData?.cols || 3;
-                        const newCells = Array(rows).fill(null).map((_, rowIndex) =>
-                          Array(cols).fill(null).map((_, colIndex) =>
-                            currentCells[rowIndex]?.[colIndex] || { content: '', style: {} }
-                          )
-                        );
-                        onUpdateElement(element.id, {
-                          tableData: { ...element.tableData, rows, cells: newCells }
-                        });
-                      }}
-                      min={1}
-                      max={20}
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Columns</Label>
-                    <Input
-                      type="number"
-                      value={element.tableData?.cols || 3}
-                      onChange={(e) => {
-                        const cols = Number(e.target.value);
-                        const currentCells = element.tableData?.cells || [];
-                        const rows = element.tableData?.rows || 3;
-                        const newCells = Array(rows).fill(null).map((_, rowIndex) =>
-                          Array(cols).fill(null).map((_, colIndex) =>
-                            currentCells[rowIndex]?.[colIndex] || { content: '', style: {} }
-                          )
-                        );
-                        onUpdateElement(element.id, {
-                          tableData: { ...element.tableData, cols, cells: newCells }
-                        });
-                      }}
-                      min={1}
-                      max={10}
-                      className="h-7 text-xs"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Header Row</Label>
-                  <Switch
-                    checked={element.tableData?.headerRow || false}
-                    onCheckedChange={(checked) => onUpdateElement(element.id, {
-                      tableData: { ...element.tableData, headerRow: checked }
-                    })}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs">Alternating Rows</Label>
-                  <Switch
-                    checked={element.tableData?.alternatingRowColors || false}
-                    onCheckedChange={(checked) => onUpdateElement(element.id, {
-                      tableData: { ...element.tableData, alternatingRowColors: checked }
-                    })}
-                  />
-                </div>
-
-                {element.tableData?.alternatingRowColors && (
-                  <div>
-                    <Label className="text-xs text-muted-foreground mb-1.5 block">Alt Row Color</Label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={element.tableData?.alternatingColor || '#f9fafb'}
-                        onChange={(e) => onUpdateElement(element.id, {
-                          tableData: { ...element.tableData, alternatingColor: e.target.value }
-                        })}
-                        className="w-8 h-7 rounded border cursor-pointer"
-                      />
-                      <Input
-                        value={element.tableData?.alternatingColor || '#f9fafb'}
-                        onChange={(e) => onUpdateElement(element.id, {
-                          tableData: { ...element.tableData, alternatingColor: e.target.value }
-                        })}
-                        className="h-7 flex-1 text-xs font-mono"
-                      />
-                    </div>
-                  </div>
-                )}
-              </Section>
-              <Separator />
-            </>
-          )}
-
-          {/* Content Section */}
-          {isTextElement && (
-            <Section title="Content">
-              <textarea
-                value={element.content || ''}
-                onChange={(e) => onUpdateElement(element.id, { content: e.target.value })}
-                className="w-full h-24 px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Enter content..."
-              />
-
-              {element.type === 'dynamic-field' && (
-                <div className="mt-2">
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">Field Name</Label>
-                  <Input
-                    value={element.dynamicField || ''}
-                    onChange={(e) => onUpdateElement(element.id, { dynamicField: e.target.value })}
-                    placeholder="e.g., customer_name"
-                    className="h-7 text-xs font-mono"
-                  />
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    This field will be populated via API
-                  </p>
-                </div>
-              )}
-            </Section>
-          )}
-
-          {/* Watermark Section */}
-          {element.type === 'watermark' && (
-            <Section title="Watermark">
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">Pattern</Label>
-                <Select
-                  value={element.watermarkPattern || 'single'}
-                  onValueChange={(value) => onUpdateElement(element.id, {
-                    watermarkPattern: value as 'single' | 'tiled'
-                  })}
-                >
-                  <SelectTrigger className="h-7 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="single">Single</SelectItem>
-                    <SelectItem value="tiled">Tiled</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">Watermark Opacity</Label>
-                <div className="flex items-center gap-2">
-                  <Slider
-                    value={[(element.watermarkOpacity ?? 0.1) * 100]}
-                    onValueChange={([value]) => onUpdateElement(element.id, {
-                      watermarkOpacity: value / 100
-                    })}
-                    min={1}
-                    max={50}
-                    className="flex-1"
-                  />
-                  <span className="text-xs text-muted-foreground w-10 text-right">
-                    {Math.round((element.watermarkOpacity ?? 0.1) * 100)}%
-                  </span>
-                </div>
-              </div>
-            </Section>
-          )}
+{/* List Section */ }
+{
+  isListElement && (
+    <>
+      <Section title="List">
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">List Type</Label>
+          <Select
+            value={element.listType || 'bullet'}
+            onValueChange={(value) => onUpdateElement(element.id, { listType: value as ListType })}
+          >
+            <SelectTrigger className="h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="bullet">Bullet Points</SelectItem>
+              <SelectItem value="numbered">Numbered</SelectItem>
+              <SelectItem value="none">None</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-      </ScrollArea>
-    </div>
+
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">List Items</Label>
+          <textarea
+            value={(element.listItems || []).join('\n')}
+            onChange={(e) => onUpdateElement(element.id, {
+              listItems: e.target.value.split('\n').filter(item => item.trim())
+            })}
+            className="w-full h-24 px-2 py-1.5 text-xs border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder="Enter each item on a new line"
+          />
+        </div>
+      </Section>
+      <Separator />
+    </>
+  )
+}
+
+{/* Barcode Section */ }
+{
+  isBarcodeElement && (
+    <>
+      <Section title="Barcode">
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Type</Label>
+          <Select
+            value={element.barcodeType || 'qr'}
+            onValueChange={(value) => onUpdateElement(element.id, { barcodeType: value as BarcodeType })}
+          >
+            <SelectTrigger className="h-7 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="qr">QR Code</SelectItem>
+              <SelectItem value="code128">Code 128</SelectItem>
+              <SelectItem value="code39">Code 39</SelectItem>
+              <SelectItem value="ean13">EAN-13</SelectItem>
+              <SelectItem value="upc">UPC</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Value</Label>
+          <Input
+            value={element.barcodeValue || ''}
+            onChange={(e) => onUpdateElement(element.id, { barcodeValue: e.target.value })}
+            placeholder="Enter barcode value..."
+            className="h-7 text-xs"
+          />
+        </div>
+      </Section>
+      <Separator />
+    </>
+  )
+}
+
+{/* Table Section */ }
+{
+  isTableElement && (
+    <>
+      <Section title="Table">
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Rows</Label>
+            <Input
+              type="number"
+              value={element.tableData?.rows || 3}
+              onChange={(e) => {
+                const rows = Number(e.target.value);
+                const currentCells = element.tableData?.cells || [];
+                const cols = element.tableData?.cols || 3;
+                const newCells = Array(rows).fill(null).map((_, rowIndex) =>
+                  Array(cols).fill(null).map((_, colIndex) =>
+                    currentCells[rowIndex]?.[colIndex] || { content: '', style: {} }
+                  )
+                );
+                onUpdateElement(element.id, {
+                  tableData: { ...element.tableData, rows, cells: newCells }
+                });
+              }}
+              min={1}
+              max={20}
+              className="h-7 text-xs"
+            />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Columns</Label>
+            <Input
+              type="number"
+              value={element.tableData?.cols || 3}
+              onChange={(e) => {
+                const cols = Number(e.target.value);
+                const currentCells = element.tableData?.cells || [];
+                const rows = element.tableData?.rows || 3;
+                const newCells = Array(rows).fill(null).map((_, rowIndex) =>
+                  Array(cols).fill(null).map((_, colIndex) =>
+                    currentCells[rowIndex]?.[colIndex] || { content: '', style: {} }
+                  )
+                );
+                onUpdateElement(element.id, {
+                  tableData: { ...element.tableData, cols, cells: newCells }
+                });
+              }}
+              min={1}
+              max={10}
+              className="h-7 text-xs"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">Header Row</Label>
+          <Switch
+            checked={element.tableData?.headerRow || false}
+            onCheckedChange={(checked) => onUpdateElement(element.id, {
+              tableData: { ...element.tableData, headerRow: checked }
+            })}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <Label className="text-xs">Alternating Rows</Label>
+          <Switch
+            checked={element.tableData?.alternatingRowColors || false}
+            onCheckedChange={(checked) => onUpdateElement(element.id, {
+              tableData: { ...element.tableData, alternatingRowColors: checked }
+            })}
+          />
+        </div>
+
+        {element.tableData?.alternatingRowColors && (
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1.5 block">Alt Row Color</Label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={element.tableData?.alternatingColor || '#f9fafb'}
+                onChange={(e) => onUpdateElement(element.id, {
+                  tableData: { ...element.tableData, alternatingColor: e.target.value }
+                })}
+                className="w-8 h-7 rounded border cursor-pointer"
+              />
+              <Input
+                value={element.tableData?.alternatingColor || '#f9fafb'}
+                onChange={(e) => onUpdateElement(element.id, {
+                  tableData: { ...element.tableData, alternatingColor: e.target.value }
+                })}
+                className="h-7 flex-1 text-xs font-mono"
+              />
+            </div>
+          </div>
+        )}
+      </Section>
+      <Separator />
+    </>
+  )
+}
+
+{/* Content Section */ }
+{
+  isTextElement && (
+    <Section title="Content">
+      <textarea
+        value={element.content || ''}
+        onChange={(e) => onUpdateElement(element.id, { content: e.target.value })}
+        className="w-full h-24 px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+        placeholder="Enter content..."
+      />
+
+      {element.type === 'dynamic-field' && (
+        <div className="mt-2">
+          <Label className="text-xs text-muted-foreground mb-1.5 block">Field Name</Label>
+          <Input
+            value={element.dynamicField || ''}
+            onChange={(e) => onUpdateElement(element.id, { dynamicField: e.target.value })}
+            placeholder="e.g., customer_name"
+            className="h-7 text-xs font-mono"
+          />
+          <p className="text-[10px] text-muted-foreground mt-1">
+            This field will be populated via API
+          </p>
+        </div>
+      )}
+    </Section>
+  )
+}
+
+{/* Watermark Section */ }
+{
+  element.type === 'watermark' && (
+    <Section title="Watermark">
+      <div>
+        <Label className="text-xs text-muted-foreground mb-1.5 block">Pattern</Label>
+        <Select
+          value={element.watermarkPattern || 'single'}
+          onValueChange={(value) => onUpdateElement(element.id, {
+            watermarkPattern: value as 'single' | 'tiled'
+          })}
+        >
+          <SelectTrigger className="h-7 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="single">Single</SelectItem>
+            <SelectItem value="tiled">Tiled</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label className="text-xs text-muted-foreground mb-1.5 block">Watermark Opacity</Label>
+        <div className="flex items-center gap-2">
+          <Slider
+            value={[(element.watermarkOpacity ?? 0.1) * 100]}
+            onValueChange={([value]) => onUpdateElement(element.id, {
+              watermarkOpacity: value / 100
+            })}
+            min={1}
+            max={50}
+            className="flex-1"
+          />
+          <span className="text-xs text-muted-foreground w-10 text-right">
+            {Math.round((element.watermarkOpacity ?? 0.1) * 100)}%
+          </span>
+        </div>
+      </div>
+    </Section>
+  )
+}
+        </div >
+      </ScrollArea >
+    </div >
   );
 };

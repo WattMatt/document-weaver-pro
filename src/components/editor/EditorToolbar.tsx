@@ -42,8 +42,19 @@ interface EditorToolbarProps {
   onSave: () => void;
   onPreview: () => void;
   onNewTemplate: () => void;
-  onUpdateName: (name: string) => void;
+  onUndo: () => void;
+  onRedo: () => void;
+  onCopyStyle: () => void;
+  onPasteStyle: () => void;
+  onFindAndReplace: (find: string, replace: string) => void;
 }
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Paintbrush, Search, RotateCcw, RotateCw, Replace } from 'lucide-react';
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   templateName,
@@ -57,8 +68,15 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   onPreview,
   onNewTemplate,
   onUpdateName,
+  onUndo,
+  onRedo,
+  onCopyStyle,
+  onPasteStyle,
+  onFindAndReplace,
 }) => {
   const [isEditingName, setIsEditingName] = useState(false);
+  const [findText, setFindText] = useState('');
+  const [replaceText, setReplaceText] = useState('');
 
   return (
     <div className="h-14 bg-toolbar border-b border-sidebar-border flex items-center px-4 gap-2">
@@ -105,6 +123,86 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           </TooltipTrigger>
           <TooltipContent>Export PDF</TooltipContent>
         </Tooltip>
+      </div>
+
+      <Separator orientation="vertical" className="h-6" />
+
+      {/* Edit Tools */}
+      <div className="flex items-center gap-1 px-2">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onUndo}>
+              <RotateCcw className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Undo</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onRedo}>
+              <RotateCw className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Redo</TooltipContent>
+        </Tooltip>
+
+        <Separator orientation="vertical" className="h-4 mx-1" />
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onCopyStyle}>
+              <Paintbrush className="w-4 h-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Copy Style</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={onPasteStyle}>
+              <Paintbrush className="w-4 h-4 text-primary" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Paste Style</TooltipContent>
+        </Tooltip>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Search className="w-4 h-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 p-3" align="start">
+            <div className="grid gap-2">
+              <div className="space-y-1">
+                <h4 className="font-medium leading-none text-xs">Find & Replace</h4>
+              </div>
+              <div className="grid gap-2">
+                <Input
+                  placeholder="Find..."
+                  value={findText}
+                  onChange={(e) => setFindText(e.target.value)}
+                  className="h-8 text-xs"
+                />
+                <Input
+                  placeholder="Replace with..."
+                  value={replaceText}
+                  onChange={(e) => setReplaceText(e.target.value)}
+                  className="h-8 text-xs"
+                />
+                <Button
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => onFindAndReplace(findText, replaceText)}
+                >
+                  <Replace className="w-3 h-3 mr-1" />
+                  Replace All
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <Separator orientation="vertical" className="h-6" />

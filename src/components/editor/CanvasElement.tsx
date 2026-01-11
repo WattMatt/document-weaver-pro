@@ -478,6 +478,60 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
           />
         );
 
+      case 'text':
+      case 'header':
+      case 'footer':
+      case 'date':
+      case 'page-number':
+        // Text styling properties
+        const textStyle: React.CSSProperties = {
+          fontSize: (style.fontSize || 14) * (zoom / 100),
+          fontWeight: style.fontWeight || 'normal',
+          fontFamily: style.fontFamily || 'Inter, sans-serif',
+          color: style.color || '#000000',
+          textAlign: style.textAlign || 'left',
+          fontStyle: style.fontStyle || 'normal',
+          textDecoration: style.textDecoration,
+          textTransform: style.textTransform,
+          lineHeight: style.lineHeight,
+          letterSpacing: style.letterSpacing ? `${style.letterSpacing}px` : undefined,
+          textIndent: style.textIndent ? `${style.textIndent}px` : undefined,
+          columnCount: style.columnCount,
+          columnGap: style.columnGap ? `${style.columnGap}px` : undefined,
+          padding: 0, // Padding handled by container
+          cursor: element.style.linkUrl ? 'pointer' : 'inherit',
+        };
+
+        const textContent = (
+          <div
+            className="w-full h-full outline-none"
+            style={textStyle}
+            contentEditable={isSelected && !element.locked}
+            suppressContentEditableWarning
+            onBlur={(e) => {
+              if (element.content !== e.currentTarget.textContent) {
+                onUpdate({ content: e.currentTarget.textContent || '' });
+              }
+            }}
+            dangerouslySetInnerHTML={{ __html: element.content || 'Double click to edit' }}
+          />
+        );
+
+        if (element.style.linkUrl && !isSelected) { // Only enable link when not selecting/editing
+          return (
+            <a
+              href={element.style.linkUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full h-full block"
+              onClick={(e) => e.preventDefault()} // Prevent navigation in editor
+            >
+              {textContent}
+            </a>
+          );
+        }
+
+        return textContent;
       case 'divider':
         return (
           <div
@@ -532,9 +586,11 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         top: element.position?.y ?? 0,
         width: element.size?.width ?? 100,
         height: element.size?.height ?? 50,
-        background: element.style?.gradient
+        background: (['text', 'image', 'table', 'div'].includes(element.type) || element.shapeType === 'rectangle' || element.shapeType === 'circle' || element.shapeType === 'ellipse') && element.style?.gradient
           ? getGradientString(element.style.gradient)
-          : (element.style?.backgroundColor !== 'transparent' ? element.style?.backgroundColor : undefined),
+          : (['text', 'image', 'table', 'div'].includes(element.type) || element.shapeType === 'rectangle' || element.shapeType === 'circle' || element.shapeType === 'ellipse') && element.style?.backgroundColor !== 'transparent'
+            ? element.style?.backgroundColor
+            : undefined,
         borderRadius: borderRadius,
         opacity: element.style?.opacity,
         padding: typeof element.style?.padding === 'number' ? element.style?.padding : undefined,
