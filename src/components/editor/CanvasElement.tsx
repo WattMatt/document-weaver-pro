@@ -1,6 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { DocumentElement } from '@/types/editor';
+import { DocumentElement, ImageFilters, BoxShadow, ShapeType } from '@/types/editor';
 import { cn } from '@/lib/utils';
+import {
+  Star,
+  Circle,
+  Square,
+  Triangle,
+  Hexagon,
+  Pentagon,
+  Diamond,
+  ArrowRight,
+  QrCode
+} from 'lucide-react';
 
 interface CanvasElementProps {
   element: DocumentElement;
@@ -9,6 +20,70 @@ interface CanvasElementProps {
   onSelect: () => void;
   onUpdate: (updates: Partial<DocumentElement>) => void;
 }
+
+// Generate CSS filter string from ImageFilters
+const getFilterString = (filters?: ImageFilters): string => {
+  if (!filters) return 'none';
+  const parts: string[] = [];
+  if (filters.brightness !== 100) parts.push(`brightness(${filters.brightness}%)`);
+  if (filters.contrast !== 100) parts.push(`contrast(${filters.contrast}%)`);
+  if (filters.saturation !== 100) parts.push(`saturate(${filters.saturation}%)`);
+  if (filters.blur > 0) parts.push(`blur(${filters.blur}px)`);
+  if (filters.grayscale > 0) parts.push(`grayscale(${filters.grayscale}%)`);
+  if (filters.sepia > 0) parts.push(`sepia(${filters.sepia}%)`);
+  if (filters.hueRotate !== 0) parts.push(`hue-rotate(${filters.hueRotate}deg)`);
+  return parts.length > 0 ? parts.join(' ') : 'none';
+};
+
+// Generate CSS box-shadow string
+const getBoxShadowString = (shadow?: BoxShadow): string => {
+  if (!shadow?.enabled) return 'none';
+  return `${shadow.offsetX}px ${shadow.offsetY}px ${shadow.blur}px ${shadow.spread}px ${shadow.color}`;
+};
+
+// Generate SVG path for shapes
+const getShapePath = (type: ShapeType, width: number, height: number): string => {
+  const cx = width / 2;
+  const cy = height / 2;
+
+  switch (type) {
+    case 'triangle':
+      return `M${cx},0 L${width},${height} L0,${height} Z`;
+    case 'diamond':
+      return `M${cx},0 L${width},${cy} L${cx},${height} L0,${cy} Z`;
+    case 'pentagon':
+      const p = 5;
+      const pPoints = Array.from({ length: p }, (_, i) => {
+        const angle = (i * 2 * Math.PI) / p - Math.PI / 2;
+        return `${cx + cx * Math.cos(angle)},${cy + cy * Math.sin(angle)}`;
+      });
+      return `M${pPoints.join(' L')} Z`;
+    case 'hexagon':
+      const h = 6;
+      const hPoints = Array.from({ length: h }, (_, i) => {
+        const angle = (i * 2 * Math.PI) / h - Math.PI / 2;
+        return `${cx + cx * Math.cos(angle)},${cy + cy * Math.sin(angle)}`;
+      });
+      return `M${hPoints.join(' L')} Z`;
+    case 'star':
+      const outerRadius = Math.min(cx, cy);
+      const innerRadius = outerRadius * 0.4;
+      const starPoints: string[] = [];
+      for (let i = 0; i < 10; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const angle = (i * Math.PI) / 5 - Math.PI / 2;
+        starPoints.push(`${cx + radius * Math.cos(angle)},${cy + radius * Math.sin(angle)}`);
+      }
+      return `M${starPoints.join(' L')} Z`;
+    case 'arrow':
+      const arrowWidth = width * 0.6;
+      const arrowHead = width * 0.4;
+      const arrowHeight = height * 0.3;
+      return `M0,${cy - arrowHeight} L${arrowWidth},${cy - arrowHeight} L${arrowWidth},0 L${width},${cy} L${arrowWidth},${height} L${arrowWidth},${cy + arrowHeight} L0,${cy + arrowHeight} Z`;
+    default:
+      return '';
+  }
+};
 
 export const CanvasElement: React.FC<CanvasElementProps> = ({
   element,
@@ -31,7 +106,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     if (element.locked || isEditing) return;
     e.stopPropagation();
     onSelect();
-    
+
     setIsDragging(true);
     dragStart.current = {
       x: e.clientX,
@@ -71,7 +146,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       if (isResizing && resizeHandle) {
         const dx = (e.clientX - resizeStart.current.x) / scale;
         const dy = (e.clientY - resizeStart.current.y) / scale;
-        
+
         let newWidth = resizeStart.current.width;
         let newHeight = resizeStart.current.height;
         let newX = resizeStart.current.elementX;
@@ -113,7 +188,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   }, [isDragging, isResizing, resizeHandle, scale, onUpdate]);
 
   const handleDoubleClick = () => {
-    if (['text', 'header', 'footer', 'dynamic-field'].includes(element.type)) {
+    if (['text', 'header', 'footer', 'dynamic-field', 'page-number', 'watermark'].includes(element.type)) {
       setIsEditing(true);
     }
   };
@@ -127,8 +202,14 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     const contentStyle: React.CSSProperties = {
       fontSize: style.fontSize,
       fontWeight: style.fontWeight as any,
+      fontFamily: style.fontFamily,
+      fontStyle: style.fontStyle,
       color: style.color,
       textAlign: style.textAlign,
+      lineHeight: style.lineHeight,
+      letterSpacing: style.letterSpacing ? `${style.letterSpacing}px` : undefined,
+      textDecoration: style.textDecoration,
+      textTransform: style.textTransform as any,
       width: '100%',
       height: '100%',
     };
@@ -138,6 +219,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       case 'header':
       case 'footer':
       case 'dynamic-field':
+      case 'page-number':
         if (isEditing) {
           return (
             <textarea
@@ -151,10 +233,14 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
           );
         }
         return (
-          <div className="p-2 overflow-hidden" style={contentStyle}>
+          <div className="p-2 overflow-hidden whitespace-pre-wrap" style={contentStyle}>
             {element.type === 'dynamic-field' ? (
               <span className="text-primary bg-primary/10 px-2 py-0.5 rounded text-xs font-mono">
                 {element.content || `{{${element.dynamicField || 'field'}}}`}
+              </span>
+            ) : element.type === 'page-number' ? (
+              <span className="text-muted-foreground font-mono text-xs">
+                {element.content || 'Page {{page}}'}
               </span>
             ) : (
               element.content
@@ -162,11 +248,97 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
           </div>
         );
 
-      case 'image':
+      case 'watermark':
+        if (isEditing) {
+          return (
+            <textarea
+              value={element.content || ''}
+              onChange={(e) => onUpdate({ content: e.target.value })}
+              onBlur={handleBlur}
+              autoFocus
+              className="w-full h-full resize-none bg-transparent border-none outline-none p-2 text-center"
+              style={{ ...contentStyle, opacity: element.watermarkOpacity || 0.1 }}
+            />
+          );
+        }
         return (
-          <div className="w-full h-full flex items-center justify-center bg-muted/50 rounded">
+          <div
+            className="p-2 overflow-hidden flex items-center justify-center"
+            style={{
+              ...contentStyle,
+              opacity: element.watermarkOpacity || 0.1,
+              transform: `rotate(-${element.rotation || 30}deg)`,
+            }}
+          >
+            {element.watermarkPattern === 'tiled' ? (
+              <div className="grid grid-cols-2 gap-4 text-center">
+                {[...Array(4)].map((_, i) => (
+                  <span key={i}>{element.content || 'WATERMARK'}</span>
+                ))}
+              </div>
+            ) : (
+              element.content || 'WATERMARK'
+            )}
+          </div>
+        );
+
+      case 'list':
+        const ListTag = element.listType === 'numbered' ? 'ol' : 'ul';
+        const listItems = element.listItems || ['Item 1', 'Item 2', 'Item 3'];
+        return (
+          <div className="p-2 overflow-hidden" style={contentStyle}>
+            <ListTag className={cn(
+              "pl-5 space-y-1",
+              element.listType === 'bullet' && "list-disc",
+              element.listType === 'numbered' && "list-decimal",
+              element.listType === 'none' && "list-none pl-0"
+            )}>
+              {listItems.map((item, index) => (
+                <li key={index}>{item}</li>
+              ))}
+            </ListTag>
+          </div>
+        );
+
+      case 'icon':
+        const iconSize = Math.min(element.size.width, element.size.height) * 0.6;
+        return (
+          <div className="w-full h-full flex items-center justify-center" style={{ color: style.color }}>
+            <Star style={{ width: iconSize, height: iconSize }} />
+          </div>
+        );
+
+      case 'barcode':
+        return (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-white border rounded p-2">
+            <QrCode className="w-full h-full max-w-[80%] max-h-[80%] text-foreground" />
+            {element.barcodeValue && (
+              <span className="text-[8px] text-muted-foreground mt-1 truncate max-w-full">
+                {element.barcodeValue}
+              </span>
+            )}
+          </div>
+        );
+
+      case 'image':
+        const imageTransform = [
+          element.flipHorizontal && 'scaleX(-1)',
+          element.flipVertical && 'scaleY(-1)',
+        ].filter(Boolean).join(' ');
+
+        return (
+          <div className="w-full h-full flex items-center justify-center bg-muted/50 rounded overflow-hidden">
             {element.imageUrl ? (
-              <img src={element.imageUrl} alt="" className="max-w-full max-h-full object-contain" />
+              <img
+                src={element.imageUrl}
+                alt=""
+                className="max-w-full max-h-full"
+                style={{
+                  objectFit: element.objectFit || 'contain',
+                  filter: getFilterString(element.imageFilters),
+                  transform: imageTransform || undefined,
+                }}
+              />
             ) : (
               <div className="text-muted-foreground text-xs">Drop image or click to upload</div>
             )}
@@ -174,7 +346,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         );
 
       case 'table':
-        const { rows = 3, cols = 3, cells = [] } = element.tableData || { rows: 3, cols: 3, cells: [] };
+        const { rows = 3, cols = 3, cells = [], headerRow, alternatingRowColors, alternatingColor } = element.tableData || { rows: 3, cols: 3, cells: [] };
         return (
           <table className="w-full h-full border-collapse text-xs">
             <tbody>
@@ -183,8 +355,18 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
                   {Array(cols).fill(null).map((_, colIndex) => (
                     <td
                       key={colIndex}
-                      className="border border-border p-1"
-                      style={contentStyle}
+                      className={cn(
+                        "border border-border p-1",
+                        headerRow && rowIndex === 0 && "font-bold bg-muted"
+                      )}
+                      style={{
+                        ...contentStyle,
+                        backgroundColor: !headerRow || rowIndex > 0
+                          ? (alternatingRowColors && rowIndex % 2 === 1
+                            ? alternatingColor || '#f9fafb'
+                            : undefined)
+                          : undefined,
+                      }}
                     >
                       {cells[rowIndex]?.[colIndex]?.content || ''}
                     </td>
@@ -198,17 +380,70 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
       case 'shape':
         const shapeStyle: React.CSSProperties = {
           backgroundColor: style.backgroundColor,
-          borderRadius: element.shapeType === 'circle' ? '50%' : style.borderRadius,
+          borderRadius: element.shapeType === 'circle' ? '50%' :
+            element.shapeType === 'ellipse' ? '50%' :
+              (typeof style.borderRadius === 'number' ? style.borderRadius : 0),
         };
+
         if (element.shapeType === 'line') {
           return (
-            <div className="w-full h-0.5 bg-current" style={{ backgroundColor: style.color }} />
+            <div
+              className="w-full h-0.5 bg-current"
+              style={{
+                backgroundColor: style.strokeColor || style.color,
+                height: style.strokeWidth || 2,
+              }}
+            />
           );
         }
-        return <div className="w-full h-full" style={shapeStyle} />;
+
+        // Complex shapes with SVG
+        if (['triangle', 'diamond', 'pentagon', 'hexagon', 'star', 'arrow'].includes(element.shapeType || '')) {
+          const path = getShapePath(element.shapeType!, element.size.width, element.size.height);
+          return (
+            <svg
+              width="100%"
+              height="100%"
+              viewBox={`0 0 ${element.size.width} ${element.size.height}`}
+            >
+              <path
+                d={path}
+                fill={style.backgroundColor || '#e5e7eb'}
+                stroke={style.strokeColor || 'none'}
+                strokeWidth={style.strokeWidth || 0}
+                strokeDasharray={
+                  style.strokeStyle === 'dashed' ? '8,4' :
+                    style.strokeStyle === 'dotted' ? '2,2' :
+                      'none'
+                }
+              />
+            </svg>
+          );
+        }
+
+        // Rectangle, circle, ellipse
+        return (
+          <div
+            className="w-full h-full"
+            style={{
+              ...shapeStyle,
+              border: (style.strokeWidth || 0) > 0
+                ? `${style.strokeWidth}px ${style.strokeStyle || 'solid'} ${style.strokeColor || '#000'}`
+                : undefined,
+            }}
+          />
+        );
 
       case 'divider':
-        return <div className="w-full h-0.5 bg-border" />;
+        return (
+          <div
+            className="w-full"
+            style={{
+              height: style.strokeWidth || 2,
+              backgroundColor: style.color || style.borderColor || '#e5e7eb',
+            }}
+          />
+        );
 
       case 'signature':
         return (
@@ -230,6 +465,14 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
     return null;
   }
 
+  // Calculate border styles
+  const borderRadius = typeof element.style?.borderRadius === 'number'
+    ? element.style.borderRadius
+    : 0;
+  const borderWidth = element.style?.borderWidth || 0;
+  const borderStyle = element.style?.border?.style || 'solid';
+  const borderColor = element.style?.borderColor || '#e5e7eb';
+
   return (
     <div
       ref={elementRef}
@@ -244,9 +487,14 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         width: element.size?.width ?? 100,
         height: element.size?.height ?? 50,
         backgroundColor: element.style?.backgroundColor !== 'transparent' ? element.style?.backgroundColor : undefined,
-        borderRadius: element.style?.borderRadius,
+        borderRadius: borderRadius,
         opacity: element.style?.opacity,
-        padding: element.style?.padding,
+        padding: typeof element.style?.padding === 'number' ? element.style?.padding : undefined,
+        transform: element.rotation ? `rotate(${element.rotation}deg)` : undefined,
+        transformOrigin: 'center center',
+        zIndex: element.zIndex || 0,
+        boxShadow: getBoxShadowString(element.style?.boxShadow),
+        border: borderWidth > 0 ? `${borderWidth}px ${borderStyle} ${borderColor}` : undefined,
       }}
       onMouseDown={handleMouseDown}
       onDoubleClick={handleDoubleClick}

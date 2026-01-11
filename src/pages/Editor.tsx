@@ -58,8 +58,14 @@ const Editor: React.FC = () => {
           <TemplatesSidebar
             templates={templates}
             currentTemplateId={state.currentTemplate?.id || null}
+            currentTemplate={state.currentTemplate}
             onSelectTemplate={loadTemplate}
             onCreateNew={createNewTemplate}
+            onImportTemplate={(result) => {
+              if (result.success && result.template) {
+                loadTemplate(result.template);
+              }
+            }}
           />
         )}
 
