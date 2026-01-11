@@ -566,9 +566,17 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
   }
 
   // Calculate border styles
-  const borderRadius = typeof element.style?.borderRadius === 'number'
-    ? element.style.borderRadius
-    : 0;
+  const getBorderRadius = () => {
+    if (element.type === 'shape') {
+      if (element.shapeType === 'circle' || element.shapeType === 'ellipse') {
+        return '50%';
+      }
+    }
+    return typeof element.style?.borderRadius === 'number'
+      ? element.style.borderRadius
+      : 0;
+  };
+  const borderRadius = getBorderRadius();
   const borderWidth = element.style?.borderWidth || 0;
   const borderStyle = element.style?.border?.style || 'solid';
   const borderColor = element.style?.borderColor || '#e5e7eb';
