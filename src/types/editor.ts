@@ -1,13 +1,13 @@
 // === Element Types ===
-export type ElementType = 
-  | 'text' 
-  | 'image' 
-  | 'table' 
-  | 'shape' 
-  | 'divider' 
-  | 'header' 
-  | 'footer' 
-  | 'signature' 
+export type ElementType =
+  | 'text'
+  | 'image'
+  | 'table'
+  | 'shape'
+  | 'divider'
+  | 'header'
+  | 'footer'
+  | 'signature'
   | 'dynamic-field'
   | 'list'
   | 'icon'
@@ -16,16 +16,16 @@ export type ElementType =
   | 'watermark';
 
 // === Shape Types ===
-export type ShapeType = 
-  | 'rectangle' 
-  | 'circle' 
-  | 'line' 
-  | 'triangle' 
-  | 'diamond' 
-  | 'arrow' 
-  | 'star' 
-  | 'pentagon' 
-  | 'hexagon' 
+export type ShapeType =
+  | 'rectangle'
+  | 'circle'
+  | 'line'
+  | 'triangle'
+  | 'diamond'
+  | 'arrow'
+  | 'star'
+  | 'pentagon'
+  | 'hexagon'
   | 'ellipse';
 
 // === List Types ===
@@ -127,25 +127,25 @@ export interface ElementStyle {
   letterSpacing?: number;
   textDecoration?: 'none' | 'underline' | 'line-through' | 'overline';
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize';
-  
+
   // Background
   backgroundColor?: string;
   gradient?: Gradient;
-  
+
   // Border
   border?: Border;
   borderColor?: string; // Legacy support
   borderWidth?: number; // Legacy support
   borderRadius?: number | BorderRadius;
-  
+
   // Shadows
   boxShadow?: BoxShadow;
   textShadow?: TextShadow;
-  
+
   // Layout
   padding?: number | { top?: number; right?: number; bottom?: number; left?: number };
   opacity?: number;
-  
+
   // Shape specific
   strokeColor?: string;
   strokeWidth?: number;
@@ -179,51 +179,51 @@ export interface DocumentElement {
   position: Position;
   size: Size;
   style: ElementStyle;
-  
+
   // Content
   content?: string;
-  
+
   // Image specific
   imageUrl?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none';
   imageFilters?: ImageFilters;
   flipHorizontal?: boolean;
   flipVertical?: boolean;
-  
+
   // Table specific
   tableData?: TableData;
-  
+
   // Shape specific
   shapeType?: ShapeType;
-  
+
   // List specific
   listType?: ListType;
   listItems?: string[];
-  
+
   // Icon specific
   iconName?: string;
-  
+
   // Barcode specific
   barcodeType?: BarcodeType;
   barcodeValue?: string;
-  
+
   // Dynamic field
   dynamicField?: string;
-  
+
   // Watermark specific
   watermarkOpacity?: number;
   watermarkPattern?: 'single' | 'tiled';
-  
+
   // Transform
   rotation?: number;
-  
+
   // Layer
   zIndex?: number;
-  
+
   // State
   locked?: boolean;
   visible?: boolean;
-  
+
   // Grouping
   groupId?: string;
 }
@@ -325,3 +325,104 @@ export const FONT_FAMILIES = [
   { name: 'Helvetica', value: 'Helvetica, sans-serif' },
   { name: 'Verdana', value: 'Verdana, sans-serif' },
 ];
+
+// ============================================
+// PDFMaker Integration Types
+// ============================================
+
+/**
+ * Metadata for template discovery and management
+ */
+export interface TemplateMetadata {
+  author?: string;
+  version: string;
+  tags?: string[];
+  category?: string;
+  language?: string;
+}
+
+/**
+ * Page margin settings in millimeters
+ */
+export interface PageMargins {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+/**
+ * Template settings for PDF generation
+ */
+export interface TemplateSettings {
+  pageSize: 'A4' | 'Letter' | 'Legal';
+  orientation: 'portrait' | 'landscape';
+  margins: PageMargins;
+}
+
+/**
+ * Dynamic field definition for PDFMaker data binding
+ */
+export interface DynamicFieldDefinition {
+  name: string;
+  type: 'string' | 'number' | 'date' | 'boolean' | 'array' | 'object';
+  required: boolean;
+  defaultValue?: string | number | boolean | null;
+  description?: string;
+  format?: string;
+}
+
+/**
+ * Export configuration options
+ */
+export interface TemplateExportOptions {
+  includeMetadata?: boolean;
+  includeDynamicFields?: boolean;
+  minifyOutput?: boolean;
+  schemaVersion?: string;
+}
+
+/**
+ * Standardized PDFMaker template format for external integration
+ */
+export interface PDFMakerTemplate {
+  schemaVersion: string;
+  type: 'pdfmaker-template';
+  exportedAt: string;
+  template: {
+    id: string;
+    name: string;
+    description?: string;
+    metadata: TemplateMetadata;
+    settings: TemplateSettings;
+    elements: DocumentElement[];
+    dynamicFields: DynamicFieldDefinition[];
+  };
+}
+
+/**
+ * Template manifest for bulk exports
+ */
+export interface TemplateManifest {
+  schemaVersion: string;
+  type: 'pdfmaker-manifest';
+  exportedAt: string;
+  count: number;
+  templates: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    metadata: TemplateMetadata;
+  }>;
+}
+
+/**
+ * Import result with validation status
+ */
+export interface TemplateImportResult {
+  success: boolean;
+  template?: Template;
+  errors?: string[];
+  warnings?: string[];
+}
+
