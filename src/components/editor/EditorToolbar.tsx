@@ -42,7 +42,6 @@ interface EditorToolbarProps {
   onSave: () => void;
   onPreview: () => void;
   onNewTemplate: () => void;
-  onUpdateName?: (name: string) => void;
   onUndo: () => void;
   onRedo: () => void;
   onCopyStyle: () => void;
@@ -55,7 +54,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Paintbrush, Search, RotateCcw, RotateCw, Replace } from 'lucide-react';
+import { Paintbrush, Search, RotateCcw, RotateCw, Replace, MonitorPlay, FileOutput } from 'lucide-react';
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   templateName,
@@ -68,6 +67,8 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
   onSave,
   onPreview,
   onNewTemplate,
+  onNewPresentation,
+  onExportPptx,
   onUpdateName,
   onUndo,
   onRedo,
@@ -99,6 +100,10 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           <DropdownMenuContent>
             <DropdownMenuItem onClick={onNewTemplate}>
               Blank Template
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onNewPresentation}>
+              <MonitorPlay className="w-4 h-4 mr-2" />
+              New Presentation
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem>Invoice Template</DropdownMenuItem>

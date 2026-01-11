@@ -7,6 +7,8 @@ import { EditorCanvas } from '@/components/editor/EditorCanvas';
 import { PreviewPanel } from '@/components/editor/PreviewPanel';
 import { TemplatesSidebar } from '@/components/editor/TemplatesSidebar';
 import { ElementType } from '@/types/editor';
+import { PptxExportService } from '@/services/pptx/PptxExportService';
+import { toast } from 'sonner';
 
 const Editor: React.FC = () => {
   const {
@@ -25,6 +27,7 @@ const Editor: React.FC = () => {
     saveTemplate,
     loadTemplate,
     createNewTemplate,
+    createNewPresentation,
     undo,
     redo,
     copyStyle,
@@ -37,6 +40,17 @@ const Editor: React.FC = () => {
 
   const handleAddElement = (type: ElementType) => {
     addElement(type);
+  };
+
+  const handleExportPptx = async () => {
+    if (!state.currentTemplate) return;
+    try {
+      await PptxExportService.exportToPptx(state.currentTemplate);
+      toast.success('Presentation exported successfully');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export presentation');
+    }
   };
 
   return (
@@ -53,6 +67,8 @@ const Editor: React.FC = () => {
         onSave={saveTemplate}
         onPreview={() => setShowPreview(true)}
         onNewTemplate={createNewTemplate}
+        onNewPresentation={createNewPresentation}
+        onExportPptx={handleExportPptx}
         onUpdateName={updateTemplateName}
         onUndo={undo}
         onRedo={redo}

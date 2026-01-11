@@ -158,6 +158,13 @@ export interface Template {
   createdAt: Date;
   updatedAt: Date;
   sourceApp?: string;
+  layoutType: 'document' | 'presentation';
+  slideProperties?: SlideProperties;
+}
+
+export interface SlideProperties {
+  backgroundColor?: string;
+  transition?: 'none' | 'fade' | 'slide' | 'zoom';
 }
 
 export interface EditorState {

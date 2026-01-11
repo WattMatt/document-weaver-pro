@@ -29,6 +29,7 @@ const createDefaultTemplate = (): Template => ({
   orientation: 'portrait',
   createdAt: new Date(),
   updatedAt: new Date(),
+  layoutType: 'document',
 });
 
 export const useEditorState = () => {
@@ -46,6 +47,17 @@ export const useEditorState = () => {
   });
 
   const [templates, setTemplates] = useState<Template[]>([]);
+
+  // ... (previous functions: addToUndoStack, undo, redo, addElement, updateElement, deleteElement, duplicateElement, selectElement, setZoom, toggleGrid, toggleSnapToGrid, updateTemplateName, saveTemplate, loadTemplate)
+
+  // NOTE: I'm skipping re-writing lines 49-226 for brevity, but I must ensure I don't break them. 
+  // Actually, replace_file_content requires context.
+  // I will just update createNewTemplate and add createNewPresentation.
+
+  // Wait, I need two separate replacements or one large one.
+  // Let's first update the `createDefaultTemplate` definition.
+
+
 
   const addToUndoStack = useCallback(() => {
     setState(prev => ({
@@ -234,6 +246,23 @@ export const useEditorState = () => {
     }));
   }, []);
 
+  const createNewPresentation = useCallback(() => {
+    setState(prev => ({
+      ...prev,
+      currentTemplate: {
+        ...createDefaultTemplate(),
+        layoutType: 'presentation',
+        pageSize: 'Letter', // Placeholder for 16:9
+        orientation: 'landscape',
+        slideProperties: {
+          backgroundColor: '#ffffff',
+          transition: 'none',
+        }
+      },
+      selectedElementId: null,
+    }));
+  }, []);
+
   const selectedElement = state.currentTemplate?.elements.find(
     el => el.id === state.selectedElementId
   ) || null;
@@ -263,7 +292,7 @@ export const useEditorState = () => {
         if (el.content && typeof el.content === 'string' && el.content.includes(findText)) {
           return {
             ...el,
-            content: el.content.split(findText).join(replaceText)
+            content: el.content.replaceAll(findText, replaceText)
           };
         }
         return el;
@@ -296,6 +325,7 @@ export const useEditorState = () => {
     saveTemplate,
     loadTemplate,
     createNewTemplate,
+    createNewPresentation,
     undo,
     redo,
     copyStyle,
