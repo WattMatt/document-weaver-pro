@@ -23,7 +23,11 @@ import {
   Bold,
   Italic,
   Underline,
-  Strikethrough
+  Strikethrough,
+  Plus,
+  Minus,
+  Hash,
+  Calendar
 } from 'lucide-react';
 import {
   DocumentElement,
@@ -487,43 +491,174 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           )}
 
           {/* Colors Section */}
-          <Section title="Colors">
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1.5 block">
-                {isTextElement ? 'Text Color' : 'Fill Color'}
-              </Label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={element.style.color || '#1a1a1a'}
-                  onChange={(e) => updateStyle('color', e.target.value)}
-                  className="w-8 h-7 rounded border cursor-pointer"
-                />
-                <Input
-                  value={element.style.color || '#1a1a1a'}
-                  onChange={(e) => updateStyle('color', e.target.value)}
-                  className="h-7 flex-1 text-xs font-mono"
-                />
+          <Section title="Fill & Background">
+            <div className="mb-3">
+              <Label className="text-xs text-muted-foreground mb-1.5 block">Fill Type</Label>
+              <div className="flex bg-muted p-1 rounded-md">
+                <button
+                  className={cn(
+                    "flex-1 text-xs py-1 px-2 rounded-sm transition-all",
+                    !element.style.gradient ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={() => updateStyle('gradient', undefined)}
+                >
+                  Solid
+                </button>
+                <button
+                  className={cn(
+                    "flex-1 text-xs py-1 px-2 rounded-sm transition-all",
+                    element.style.gradient ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                  )}
+                  onClick={() => updateStyle('gradient', {
+                    type: 'linear',
+                    angle: 90,
+                    stops: [
+                      { offset: 0, color: element.style.backgroundColor || '#ffffff' },
+                      { offset: 100, color: '#000000' }
+                    ]
+                  })}
+                >
+                  Gradient
+                </button>
               </div>
             </div>
 
-            <div>
-              <Label className="text-xs text-muted-foreground mb-1.5 block">Background</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={element.style.backgroundColor === 'transparent' ? '#ffffff' : (element.style.backgroundColor || '#ffffff')}
-                  onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                  className="w-8 h-7 rounded border cursor-pointer"
-                />
-                <Input
-                  value={element.style.backgroundColor || 'transparent'}
-                  onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                  className="h-7 flex-1 text-xs font-mono"
-                  placeholder="transparent"
-                />
+            {!element.style.gradient ? (
+              // Solid Color Mode
+              <>
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">
+                    {isTextElement ? 'Text Color' : 'Fill Color'}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={element.style.color || '#1a1a1a'}
+                      onChange={(e) => updateStyle('color', e.target.value)}
+                      className="w-8 h-7 rounded border cursor-pointer"
+                    />
+                    <Input
+                      value={element.style.color || '#1a1a1a'}
+                      onChange={(e) => updateStyle('color', e.target.value)}
+                      className="h-7 flex-1 text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3">
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Background</Label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={element.style.backgroundColor === 'transparent' ? '#ffffff' : (element.style.backgroundColor || '#ffffff')}
+                      onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+                      className="w-8 h-7 rounded border cursor-pointer"
+                    />
+                    <Input
+                      value={element.style.backgroundColor || 'transparent'}
+                      onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+                      className="h-7 flex-1 text-xs font-mono"
+                      placeholder="transparent"
+                    />
+                  </div>
+                </div>
+              </>
+            ) : (
+              // Gradient Mode
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1.5 block">Type</Label>
+                    <Select
+                      value={element.style.gradient.type}
+                      onValueChange={(value) => updateStyle('gradient', { ...element.style.gradient!, type: value })}
+                    >
+                      <SelectTrigger className="h-7 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="linear">Linear</SelectItem>
+                        <SelectItem value="radial">Radial</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {element.style.gradient.type === 'linear' && (
+                    <div>
+                      <Label className="text-xs text-muted-foreground mb-1.5 block">Angle</Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          value={element.style.gradient.angle || 90}
+                          onChange={(e) => updateStyle('gradient', { ...element.style.gradient!, angle: Number(e.target.value) })}
+                          className="h-7 text-xs"
+                          min={0}
+                          max={360}
+                        />
+                        <span className="text-xs text-muted-foreground">deg</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <Label className="text-xs text-muted-foreground">Color Stops</Label>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-5 w-5 p-0"
+                      onClick={() => updateStyle('gradient', {
+                        ...element.style.gradient!,
+                        stops: [...element.style.gradient!.stops, { offset: 50, color: '#ffffff' }]
+                      })}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {element.style.gradient.stops.map((stop, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={stop.color}
+                          onChange={(e) => {
+                            const newStops = [...element.style.gradient!.stops];
+                            newStops[index] = { ...stop, color: e.target.value };
+                            updateStyle('gradient', { ...element.style.gradient!, stops: newStops });
+                          }}
+                          className="w-6 h-6 rounded border cursor-pointer flex-shrink-0"
+                        />
+                        <Slider
+                          value={[stop.offset]}
+                          onValueChange={([value]) => {
+                            const newStops = [...element.style.gradient!.stops];
+                            newStops[index] = { ...stop, offset: value };
+                            updateStyle('gradient', { ...element.style.gradient!, stops: newStops });
+                          }}
+                          min={0}
+                          max={100}
+                          className="flex-1"
+                        />
+                        <span className="text-xs font-mono w-8 text-right">{stop.offset}%</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          disabled={element.style.gradient!.stops.length <= 2}
+                          onClick={() => {
+                            const newStops = element.style.gradient!.stops.filter((_, i) => i !== index);
+                            updateStyle('gradient', { ...element.style.gradient!, stops: newStops });
+                          }}
+                        >
+                          <Minus className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </Section>
 
           <Separator />
@@ -685,6 +820,62 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           </Section>
 
           <Separator />
+
+          {/* Content Section */}
+          {isTextElement && (
+            <Section title="Content">
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{page}}' })}
+                >
+                  <Hash className="w-3 h-3 mr-1" />
+                  Page #
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{total_pages}}' })}
+                >
+                  <Copy className="w-3 h-3 mr-1" />
+                  Total Pages
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-6 px-2 text-[10px]"
+                  onClick={() => onUpdateElement(element.id, { content: (element.content || '') + '{{date}}' })}
+                >
+                  <Calendar className="w-3 h-3 mr-1" />
+                  Date
+                </Button>
+              </div>
+              <textarea
+                value={element.content || ''}
+                onChange={(e) => onUpdateElement(element.id, { content: e.target.value })}
+                className="w-full h-24 px-3 py-2 text-sm border rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Enter content..."
+              />
+
+              {element.type === 'dynamic-field' && (
+                <div className="mt-2">
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Field Name</Label>
+                  <Input
+                    value={element.dynamicField || ''}
+                    onChange={(e) => onUpdateElement(element.id, { dynamicField: e.target.value })}
+                    placeholder="e.g., customer_name"
+                    className="h-7 text-xs font-mono"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    This field will be populated via API
+                  </p>
+                </div>
+              )}
+            </Section>
+          )}
 
           {/* Image Section */}
           {isImageElement && (

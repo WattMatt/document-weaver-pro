@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { DocumentElement, ImageFilters, BoxShadow, ShapeType } from '@/types/editor';
+import { DocumentElement, ImageFilters, BoxShadow, ShapeType, Gradient } from '@/types/editor';
 import { cn } from '@/lib/utils';
 import {
   Star,
@@ -20,6 +20,20 @@ interface CanvasElementProps {
   onSelect: () => void;
   onUpdate: (updates: Partial<DocumentElement>) => void;
 }
+
+// Generate CSS gradient string
+const getGradientString = (gradient?: Gradient): string => {
+  if (!gradient) return 'none';
+  const stopsString = gradient.stops
+    .sort((a, b) => a.offset - b.offset)
+    .map(stop => `${stop.color} ${stop.offset}%`)
+    .join(', ');
+
+  if (gradient.type === 'radial') {
+    return `radial-gradient(circle, ${stopsString})`;
+  }
+  return `linear-gradient(${gradient.angle || 90}deg, ${stopsString})`;
+};
 
 // Generate CSS filter string from ImageFilters
 const getFilterString = (filters?: ImageFilters): string => {
@@ -378,8 +392,13 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         );
 
       case 'shape':
+        const hasGradient = !!element.style?.gradient;
+        const gradientId = `grad-${element.id}`;
+
         const shapeStyle: React.CSSProperties = {
-          backgroundColor: style.backgroundColor,
+          background: hasGradient
+            ? getGradientString(element.style.gradient)
+            : (style.backgroundColor || undefined),
           borderRadius: element.shapeType === 'circle' ? '50%' :
             element.shapeType === 'ellipse' ? '50%' :
               (typeof style.borderRadius === 'number' ? style.borderRadius : 0),
@@ -390,7 +409,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             <div
               className="w-full h-0.5 bg-current"
               style={{
-                backgroundColor: style.strokeColor || style.color,
+                background: hasGradient
+                  ? getGradientString(element.style.gradient)
+                  : (style.strokeColor || style.color),
                 height: style.strokeWidth || 2,
               }}
             />
@@ -400,15 +421,38 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         // Complex shapes with SVG
         if (['triangle', 'diamond', 'pentagon', 'hexagon', 'star', 'arrow'].includes(element.shapeType || '')) {
           const path = getShapePath(element.shapeType!, element.size.width, element.size.height);
+
           return (
             <svg
               width="100%"
               height="100%"
               viewBox={`0 0 ${element.size.width} ${element.size.height}`}
             >
+              {hasGradient && element.style.gradient && (
+                <defs>
+                  {element.style.gradient.type === 'linear' ? (
+                    <linearGradient
+                      id={gradientId}
+                      x1="0%" y1="0%" x2="100%" y2="0%"
+                      gradientTransform={`rotate(${element.style.gradient.angle || 0} .5 .5)`}
+                    >
+                      {element.style.gradient.stops.map((stop, i) => (
+                        <stop key={i} offset={`${stop.offset}%`} stopColor={stop.color} />
+                      ))}
+                    </linearGradient>
+                  ) : (
+                    <radialGradient id={gradientId} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+                      {element.style.gradient.stops.map((stop, i) => (
+                        <stop key={i} offset={`${stop.offset}%`} stopColor={stop.color} />
+                      ))}
+                    </radialGradient>
+                  )}
+                </defs>
+              )}
+
               <path
                 d={path}
-                fill={style.backgroundColor || '#e5e7eb'}
+                fill={hasGradient ? `url(#${gradientId})` : (style.backgroundColor || '#e5e7eb')}
                 stroke={style.strokeColor || 'none'}
                 strokeWidth={style.strokeWidth || 0}
                 strokeDasharray={
@@ -421,7 +465,7 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
           );
         }
 
-        // Rectangle, circle, ellipse
+        // Rectangle, circle, ellipse (CSS based)
         return (
           <div
             className="w-full h-full"
@@ -440,7 +484,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
             className="w-full"
             style={{
               height: style.strokeWidth || 2,
-              backgroundColor: style.color || style.borderColor || '#e5e7eb',
+              background: element.style?.gradient
+                ? getGradientString(element.style.gradient)
+                : (style.color || style.borderColor || '#e5e7eb'),
             }}
           />
         );
@@ -486,7 +532,9 @@ export const CanvasElement: React.FC<CanvasElementProps> = ({
         top: element.position?.y ?? 0,
         width: element.size?.width ?? 100,
         height: element.size?.height ?? 50,
-        backgroundColor: element.style?.backgroundColor !== 'transparent' ? element.style?.backgroundColor : undefined,
+        background: element.style?.gradient
+          ? getGradientString(element.style.gradient)
+          : (element.style?.backgroundColor !== 'transparent' ? element.style?.backgroundColor : undefined),
         borderRadius: borderRadius,
         opacity: element.style?.opacity,
         padding: typeof element.style?.padding === 'number' ? element.style?.padding : undefined,
