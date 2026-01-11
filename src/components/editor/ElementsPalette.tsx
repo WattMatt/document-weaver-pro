@@ -14,17 +14,12 @@ import {
   QrCode,
   Hash,
   Droplets,
-  Circle,
-  Triangle,
-  Star,
-  Hexagon,
-  ArrowRight,
-  Diamond
 } from 'lucide-react';
 import { ElementType } from '@/types/editor';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ElementsPaletteProps {
   onAddElement: (type: ElementType) => void;
@@ -101,23 +96,30 @@ export const ElementsPalette: React.FC<ElementsPaletteProps> = ({ onAddElement }
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {category.items.map((element) => (
-                  <button
-                    key={element.type}
-                    onClick={() => onAddElement(element.type)}
-                    className={cn(
-                      "element-item flex flex-col items-center justify-center gap-1.5 text-center",
-                      "min-h-[72px] p-2 rounded-lg border border-transparent",
-                      "hover:border-primary/30 hover:bg-primary/5 transition-all"
-                    )}
-                  >
-                    <div className="text-muted-foreground group-hover:text-primary transition-colors">
-                      {element.icon}
-                    </div>
-                    <div>
-                      <div className="text-xs font-medium text-foreground">{element.label}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{element.description}</div>
-                    </div>
-                  </button>
+                  <Tooltip key={element.type}>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => onAddElement(element.type)}
+                        className={cn(
+                          "element-item flex flex-col items-center justify-center gap-1.5 text-center",
+                          "min-h-[72px] p-2 rounded-lg border border-transparent",
+                          "hover:border-primary/30 hover:bg-primary/5 transition-all"
+                        )}
+                      >
+                        <div className="text-muted-foreground group-hover:text-primary transition-colors">
+                          {element.icon}
+                        </div>
+                        <div>
+                          <div className="text-xs font-medium text-foreground">{element.label}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{element.description}</div>
+                        </div>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right">
+                      <p className="font-medium">{element.label}</p>
+                      <p className="text-xs text-muted-foreground">{element.description}</p>
+                    </TooltipContent>
+                  </Tooltip>
                 ))}
               </div>
               {catIndex < elementCategories.length - 1 && (

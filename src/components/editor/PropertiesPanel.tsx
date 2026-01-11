@@ -51,6 +51,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { GradientPicker } from './GradientPicker';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface PropertiesPanelProps {
@@ -145,43 +146,59 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         <div className="p-4 space-y-1">
           {/* Quick Actions */}
           <div className="flex items-center gap-1.5 flex-wrap pb-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDuplicateElement(element.id)}
-              className="h-8 px-2"
-              title="Duplicate"
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onUpdateElement(element.id, { locked: !element.locked })}
-              className="h-8 px-2"
-              title={element.locked ? "Unlock" : "Lock"}
-            >
-              {element.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onUpdateElement(element.id, { visible: !element.visible })}
-              className="h-8 px-2"
-              title={element.visible !== false ? "Hide" : "Show"}
-            >
-              {element.visible !== false ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDuplicateElement(element.id)}
+                  className="h-8 px-2"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Duplicate Element</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onUpdateElement(element.id, { locked: !element.locked })}
+                  className="h-8 px-2"
+                >
+                  {element.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{element.locked ? "Unlock Element" : "Lock Element"}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onUpdateElement(element.id, { visible: !element.visible })}
+                  className="h-8 px-2"
+                >
+                  {element.visible !== false ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{element.visible !== false ? "Hide Element" : "Show Element"}</TooltipContent>
+            </Tooltip>
             <div className="flex-1" />
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => onDeleteElement(element.id)}
-              className="h-8 px-2"
-              title="Delete"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => onDeleteElement(element.id)}
+                  className="h-8 px-2"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Delete Element</TooltipContent>
+            </Tooltip>
           </div>
 
           <Separator />
