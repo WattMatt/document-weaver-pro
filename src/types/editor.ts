@@ -150,6 +150,7 @@ export interface Template {
   orientation: 'portrait' | 'landscape';
   createdAt: Date;
   updatedAt: Date;
+  sourceApp?: string;
 }
 
 export interface EditorState {
@@ -163,6 +164,73 @@ export interface EditorState {
   clipboard: DocumentElement[];
   undoStack: Template[];
   redoStack: Template[];
+}
+
+// PDFMaker types for import/export
+export interface TemplateMetadata {
+  version: string;
+  tags?: string[];
+  category?: string;
+}
+
+export interface TemplateSettings {
+  pageSize: 'A4' | 'Letter' | 'Legal';
+  orientation: 'portrait' | 'landscape';
+  margins: {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
+  };
+}
+
+export interface DynamicFieldDefinition {
+  name: string;
+  type: 'string' | 'number' | 'date' | 'boolean';
+  required: boolean;
+  defaultValue: string | number | boolean;
+  description?: string;
+}
+
+export interface PDFMakerTemplate {
+  schemaVersion: string;
+  type: 'pdfmaker-template';
+  exportedAt: string;
+  template: {
+    id: string;
+    name: string;
+    description?: string;
+    metadata: TemplateMetadata;
+    settings: TemplateSettings;
+    elements: DocumentElement[];
+    dynamicFields: DynamicFieldDefinition[];
+  };
+}
+
+export interface TemplateImportResult {
+  success: boolean;
+  template?: Template;
+  errors?: string[];
+  warnings?: string[];
+}
+
+export interface TemplateExportOptions {
+  includeMetadata?: boolean;
+  includeDynamicFields?: boolean;
+  schemaVersion?: string;
+}
+
+export interface TemplateManifest {
+  schemaVersion: string;
+  type: 'pdfmaker-manifest';
+  exportedAt: string;
+  count: number;
+  templates: {
+    id: string;
+    name: string;
+    description?: string;
+    metadata: TemplateMetadata;
+  }[];
 }
 
 export const FONT_FAMILIES = [

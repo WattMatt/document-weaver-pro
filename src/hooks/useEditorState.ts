@@ -12,6 +12,11 @@ const defaultElementSizes: Record<ElementType, Size> = {
   footer: { width: 500, height: 40 },
   signature: { width: 200, height: 80 },
   'dynamic-field': { width: 150, height: 30 },
+  barcode: { width: 150, height: 80 },
+  icon: { width: 48, height: 48 },
+  list: { width: 250, height: 100 },
+  'page-number': { width: 100, height: 30 },
+  watermark: { width: 300, height: 100 },
 };
 
 const createDefaultTemplate = (): Template => ({
@@ -29,10 +34,14 @@ export const useEditorState = () => {
   const [state, setState] = useState<EditorState>({
     currentTemplate: createDefaultTemplate(),
     selectedElementId: null,
+    selectedElementIds: [],
     zoom: 100,
     showGrid: true,
     snapToGrid: true,
     gridSize: 20,
+    clipboard: [],
+    undoStack: [],
+    redoStack: [],
   });
 
   const [templates, setTemplates] = useState<Template[]>([]);
