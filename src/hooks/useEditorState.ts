@@ -17,6 +17,7 @@ const defaultElementSizes: Record<ElementType, Size> = {
   list: { width: 250, height: 100 },
   'page-number': { width: 100, height: 30 },
   watermark: { width: 300, height: 100 },
+  date: { width: 150, height: 30 },
 };
 
 const createDefaultTemplate = (): Template => ({
@@ -262,7 +263,7 @@ export const useEditorState = () => {
         if (el.content && typeof el.content === 'string' && el.content.includes(findText)) {
           return {
             ...el,
-            content: el.content.replaceAll(findText, replaceText)
+            content: el.content.split(findText).join(replaceText)
           };
         }
         return el;

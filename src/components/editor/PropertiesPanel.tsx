@@ -27,7 +27,8 @@ import {
   Plus,
   Minus,
   Hash,
-  Calendar
+  Calendar,
+  Link as LinkIcon
 } from 'lucide-react';
 import {
   DocumentElement,
@@ -492,27 +493,28 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             </>
           )}
 
-
+          {/* Background Color Section for non-text elements */}
           {!element.style.gradient && !isTextElement && (
-            <div className="mt-3">
-              <Label className="text-xs text-muted-foreground mb-1.5 block">Solid Color</Label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={element.style.backgroundColor === 'transparent' ? '#ffffff' : (element.style.backgroundColor || '#ffffff')}
-                  onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                  className="w-8 h-7 rounded border cursor-pointer"
-                />
-                <Input
-                  value={element.style.backgroundColor || 'transparent'}
-                  onChange={(e) => updateStyle('backgroundColor', e.target.value)}
-                  className="h-7 flex-1 text-xs font-mono"
-                  placeholder="transparent"
-                />
+            <Section title="Background">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">Solid Color</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={element.style.backgroundColor === 'transparent' ? '#ffffff' : (element.style.backgroundColor || '#ffffff')}
+                    onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+                    className="w-8 h-7 rounded border cursor-pointer"
+                  />
+                  <Input
+                    value={element.style.backgroundColor || 'transparent'}
+                    onChange={(e) => updateStyle('backgroundColor', e.target.value)}
+                    className="h-7 flex-1 text-xs font-mono"
+                    placeholder="transparent"
+                  />
+                </div>
               </div>
-            </div>
+            </Section>
           )}
-        </Section>
 
         <Separator />
 
@@ -728,22 +730,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               </TabsContent>
             </Tabs>
           </Section>
-        )}<Label className="text-xs text-muted-foreground mb-1.5 block">Shadow Color</Label>
-        <Input
-          value={element.style.boxShadow?.color || 'rgba(0, 0, 0, 0.15)'}
-          onChange={(e) => updateStyle('boxShadow', {
-            ...element.style.boxShadow,
-            color: e.target.value,
-          })}
-          className="h-7 text-xs font-mono"
-          placeholder="rgba(0, 0, 0, 0.15)"
-        />
-    </div>
-              </>
-            )}
-          </Section >
+        )}
 
-  <Separator />
+          <Separator />
 
 {/* Content Section */ }
 {
