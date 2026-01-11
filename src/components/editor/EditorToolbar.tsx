@@ -42,6 +42,7 @@ interface EditorToolbarProps {
   onSave: () => void;
   onPreview: () => void;
   onNewTemplate: () => void;
+  onUpdateName?: (name: string) => void;
   onUndo: () => void;
   onRedo: () => void;
   onCopyStyle: () => void;

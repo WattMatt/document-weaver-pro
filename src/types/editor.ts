@@ -12,7 +12,8 @@ export type ElementType =
   | 'icon'
   | 'barcode'
   | 'page-number'
-  | 'watermark';
+  | 'watermark'
+  | 'date';
 
 export type ShapeType =
   | 'rectangle'
