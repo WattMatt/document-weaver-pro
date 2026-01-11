@@ -178,6 +178,7 @@ export function importFromPDFMaker(data: PDFMakerTemplate): TemplateImportResult
         createdAt: new Date(),
         updatedAt: new Date(),
         sourceApp: data.template.metadata?.category || 'Imported',
+        layoutType: 'document',
     };
 
     return { success: true, template, warnings };

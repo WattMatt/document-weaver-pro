@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useEditorState } from '@/hooks/useEditorState';
 import { EditorToolbar } from '@/components/editor/EditorToolbar';
 import { ElementsPalette } from '@/components/editor/ElementsPalette';
@@ -37,6 +37,68 @@ const Editor: React.FC = () => {
 
   const [showPreview, setShowPreview] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+
+  // Keyboard shortcuts handler
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Ignore if user is typing in an input or textarea
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) {
+      return;
+    }
+
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const ctrlOrCmd = isMac ? e.metaKey : e.ctrlKey;
+
+    // Ctrl/Cmd + Z - Undo
+    if (ctrlOrCmd && !e.shiftKey && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      undo();
+      return;
+    }
+
+    // Ctrl/Cmd + Y or Ctrl/Cmd + Shift + Z - Redo
+    if ((ctrlOrCmd && e.key.toLowerCase() === 'y') || (ctrlOrCmd && e.shiftKey && e.key.toLowerCase() === 'z')) {
+      e.preventDefault();
+      redo();
+      return;
+    }
+
+    // Ctrl/Cmd + D - Duplicate
+    if (ctrlOrCmd && e.key.toLowerCase() === 'd') {
+      e.preventDefault();
+      if (state.selectedElementId) {
+        duplicateElement(state.selectedElementId);
+        toast.success('Element duplicated');
+      }
+      return;
+    }
+
+    // Delete or Backspace - Delete element
+    if ((e.key === 'Delete' || e.key === 'Backspace') && state.selectedElementId) {
+      e.preventDefault();
+      deleteElement(state.selectedElementId);
+      toast.success('Element deleted');
+      return;
+    }
+
+    // Ctrl/Cmd + S - Save
+    if (ctrlOrCmd && e.key.toLowerCase() === 's') {
+      e.preventDefault();
+      saveTemplate();
+      return;
+    }
+
+    // Escape - Deselect
+    if (e.key === 'Escape') {
+      selectElement(null);
+      return;
+    }
+  }, [state.selectedElementId, undo, redo, duplicateElement, deleteElement, saveTemplate, selectElement]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const handleAddElement = (type: ElementType) => {
     addElement(type);
