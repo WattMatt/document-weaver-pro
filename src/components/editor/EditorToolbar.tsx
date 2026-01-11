@@ -168,42 +168,49 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
           <TooltipContent>Paste Style</TooltipContent>
         </Tooltip>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <Search className="w-4 h-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 p-3" align="start">
-            <div className="grid gap-2">
-              <div className="space-y-1">
-                <h4 className="font-medium leading-none text-xs">Find & Replace</h4>
-              </div>
-              <div className="grid gap-2">
-                <Input
-                  placeholder="Find..."
-                  value={findText}
-                  onChange={(e) => setFindText(e.target.value)}
-                  className="h-8 text-xs"
-                />
-                <Input
-                  placeholder="Replace with..."
-                  value={replaceText}
-                  onChange={(e) => setReplaceText(e.target.value)}
-                  className="h-8 text-xs"
-                />
-                <Button
-                  size="sm"
-                  className="h-7 text-xs"
-                  onClick={() => onFindAndReplace(findText, replaceText)}
-                >
-                  <Replace className="w-3 h-3 mr-1" />
-                  Replace All
-                </Button>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Search className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80 p-3" align="start">
+                  <div className="grid gap-2">
+                    <div className="space-y-1">
+                      <h4 className="font-medium leading-none text-xs">Find & Replace</h4>
+                    </div>
+                    <div className="grid gap-2">
+                      <Input
+                        placeholder="Find..."
+                        value={findText}
+                        onChange={(e) => setFindText(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                      <Input
+                        placeholder="Replace with..."
+                        value={replaceText}
+                        onChange={(e) => setReplaceText(e.target.value)}
+                        className="h-8 text-xs"
+                      />
+                      <Button
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => onFindAndReplace(findText, replaceText)}
+                      >
+                        <Replace className="w-3 h-3 mr-1" />
+                        Replace All
+                      </Button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>Find & Replace</TooltipContent>
+        </Tooltip>
       </div>
 
       <Separator orientation="vertical" className="h-6" />
@@ -262,25 +269,35 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({
         </Tooltip>
 
         <div className="flex items-center gap-1 ml-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2"
-            onClick={() => onZoomChange(zoom - 10)}
-            disabled={zoom <= 25}
-          >
-            <ZoomOut className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onZoomChange(zoom - 10)}
+                disabled={zoom <= 25}
+              >
+                <ZoomOut className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Zoom Out</TooltipContent>
+          </Tooltip>
           <span className="text-xs font-medium w-12 text-center">{zoom}%</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 px-2"
-            onClick={() => onZoomChange(zoom + 10)}
-            disabled={zoom >= 200}
-          >
-            <ZoomIn className="w-4 h-4" />
-          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2"
+                onClick={() => onZoomChange(zoom + 10)}
+                disabled={zoom >= 200}
+              >
+                <ZoomIn className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Zoom In</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
