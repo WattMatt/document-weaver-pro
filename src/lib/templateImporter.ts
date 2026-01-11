@@ -62,6 +62,7 @@ export function importTemplateFromJSON(jsonString: string): TemplateImportResult
                 orientation: parsed.orientation || 'portrait',
                 createdAt: new Date(parsed.createdAt || Date.now()),
                 updatedAt: new Date(parsed.updatedAt || Date.now()),
+                layoutType: parsed.layoutType || 'document',
             };
 
             const validation = validateTemplate(template);
