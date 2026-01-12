@@ -58,6 +58,11 @@ const Index: React.FC = () => {
             <span className="font-bold text-lg">DocBuilder</span>
           </div>
           <nav className="flex items-center gap-4">
+            <Button variant="ghost" asChild>
+              <Link to="/specification">
+                Specification
+              </Link>
+            </Button>
             <Button asChild>
               <Link to="/editor">
                 Open Editor
