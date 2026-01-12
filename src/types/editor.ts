@@ -137,6 +137,7 @@ export interface DocumentElement {
   zIndex?: number;
   tableData?: TableData;
   shapeType?: ShapeType;
+  shapeFilled?: boolean; // true = filled shape, false = stroke-only outline
   listType?: ListType;
   listItems?: string[];
   barcodeType?: BarcodeType;
