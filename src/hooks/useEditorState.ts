@@ -18,6 +18,19 @@ const defaultElementSizes: Record<ElementType, Size> = {
   'page-number': { width: 100, height: 30 },
   watermark: { width: 300, height: 100 },
   date: { width: 150, height: 30 },
+  // Form fields
+  'form-text': { width: 200, height: 36 },
+  'form-checkbox': { width: 24, height: 24 },
+  'form-radio': { width: 24, height: 24 },
+  'form-dropdown': { width: 200, height: 36 },
+  'form-signature': { width: 250, height: 80 },
+  // Annotations
+  'annotation-comment': { width: 200, height: 100 },
+  'annotation-note': { width: 40, height: 40 },
+  'annotation-stamp': { width: 150, height: 50 },
+  'annotation-highlight': { width: 200, height: 24 },
+  // Drawing
+  drawing: { width: 300, height: 200 },
 };
 
 const createDefaultTemplate = (): Template => ({
