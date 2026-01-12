@@ -30,8 +30,12 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
 
   if (!template) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-canvas">
-        <p className="text-muted-foreground">No template loaded</p>
+      <div 
+        className="flex-1 flex items-center justify-center bg-canvas"
+        role="status"
+        aria-label="No template loaded"
+      >
+        <p className="text-muted-foreground">No template loaded. Create a new document to start editing.</p>
       </div>
     );
   }
@@ -46,11 +50,17 @@ export const EditorCanvas: React.FC<EditorCanvasProps> = ({
     <div
       ref={canvasRef}
       className={cn(
-        "flex-1 overflow-auto p-8 flex items-start justify-center",
+        "flex-1 overflow-auto p-4 md:p-8 flex items-start justify-center",
         showGrid ? "editor-canvas" : "bg-canvas"
       )}
       onClick={() => onSelectElement(null)}
+      role="application"
+      aria-label={`Document canvas: ${template.name}`}
+      aria-describedby="canvas-instructions"
     >
+      <span id="canvas-instructions" className="sr-only">
+        Click on elements to select them. Use arrow keys to move selected elements. Press Delete to remove.
+      </span>
       <div
         className="editor-paper relative"
         style={{

@@ -148,13 +148,13 @@ export const ElementsPalette: React.FC<ElementsPaletteProps> = ({ onAddElement }
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" role="region" aria-label="Elements palette">
       <div className="panel-header flex items-center gap-2">
-        <LayoutTemplate className="w-4 h-4 text-primary" />
-        <span>Elements</span>
+        <LayoutTemplate className="w-4 h-4 text-primary" aria-hidden="true" />
+        <span id="elements-heading">Elements</span>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1" aria-labelledby="elements-heading">
         <div className="p-2 space-y-1">
           {elementCategories.map((category) => (
             <Collapsible
@@ -181,14 +181,15 @@ export const ElementsPalette: React.FC<ElementsPaletteProps> = ({ onAddElement }
                       <TooltipTrigger asChild>
                         <button
                           onClick={() => onAddElement(element.type)}
+                          aria-label={`Add ${element.label}: ${element.description}`}
                           className={cn(
                             "element-item flex flex-col items-center justify-center gap-1 text-center",
                             "min-h-[60px] p-2 rounded-md border border-transparent",
                             "hover:border-primary/30 hover:bg-primary/5 transition-all",
-                            "active:scale-95"
+                            "active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                           )}
                         >
-                          <div className="text-muted-foreground">
+                          <div className="text-muted-foreground" aria-hidden="true">
                             {element.icon}
                           </div>
                           <div className="text-[10px] font-medium text-foreground truncate w-full">

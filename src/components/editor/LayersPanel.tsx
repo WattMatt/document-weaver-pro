@@ -103,16 +103,16 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
   const sortedElements = [...elements].reverse();
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col" role="region" aria-label="Layers panel">
       <div className="panel-header flex items-center gap-2">
-        <Layers className="w-4 h-4 text-primary" />
-        <span>Layers</span>
-        <span className="ml-auto text-xs text-muted-foreground">
-          {elements.length} items
+        <Layers className="w-4 h-4 text-primary" aria-hidden="true" />
+        <span id="layers-heading">Layers</span>
+        <span className="ml-auto text-xs text-muted-foreground" aria-live="polite">
+          {elements.length} {elements.length === 1 ? 'item' : 'items'}
         </span>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1" role="list" aria-labelledby="layers-heading">
         <div className="p-2 space-y-0.5">
           {sortedElements.length === 0 ? (
             <div className="p-4 text-center text-sm text-muted-foreground">
@@ -122,19 +122,29 @@ export const LayersPanel: React.FC<LayersPanelProps> = ({
             sortedElements.map((element, index) => (
               <div
                 key={element.id}
+                role="listitem"
+                tabIndex={0}
+                aria-selected={selectedElementId === element.id}
+                aria-label={`${getElementLabel(element)}${element.locked ? ', locked' : ''}${element.visible === false ? ', hidden' : ''}`}
                 className={cn(
                   "group flex items-center gap-1 px-2 py-1.5 rounded-md cursor-pointer transition-colors",
-                  "hover:bg-muted/50",
+                  "hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                   selectedElementId === element.id && "bg-primary/10 border border-primary/30",
                   !element.visible && "opacity-50"
                 )}
                 onClick={() => onSelectElement(element.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onSelectElement(element.id);
+                  }
+                }}
               >
                 {/* Drag Handle */}
-                <GripVertical className="w-3 h-3 text-muted-foreground/50 cursor-grab" />
+                <GripVertical className="w-3 h-3 text-muted-foreground/50 cursor-grab" aria-hidden="true" />
 
                 {/* Element Icon */}
-                <span className="w-5 h-5 flex items-center justify-center text-xs font-medium text-muted-foreground">
+                <span className="w-5 h-5 flex items-center justify-center text-xs font-medium text-muted-foreground" aria-hidden="true">
                   {getElementIcon(element.type)}
                 </span>
 
